@@ -14,6 +14,7 @@ using Org.BouncyCastle.Utilities;
 using SpotifyLib.Enums;
 using SpotifyLib.Helpers;
 using SpotifyLib.Interfaces;
+using SpotifyLib.Models;
 
 namespace SpotifyLib
 {
@@ -38,14 +39,14 @@ namespace SpotifyLib
         private readonly ManualResetEvent _reqListenersLock = new ManualResetEvent(false);
 
 
-        private readonly WebSocketHandler _webSocket;
+        private readonly WebsocketHandler _webSocket;
         private bool _closed = false;
         private bool _receivedPong = false;
 
-        public DealerClient(SpotifySession session)
+        public DealerClient(SpotifySession session, WebsocketHandler websocket)
         {
             _session = session;
-            _webSocket = new WebSocketHandler();
+            _webSocket = websocket;
             _webSocket.MessageReceived += WebSocket_MessageReceived;
             _webSocket.SocketDisconnected += WebSocket_SocketDisconnected;
             _webSocket.SocketConnected += WebSocket_SocketConnected;
@@ -244,7 +245,7 @@ namespace SpotifyLib
         }
 
         private void WebSocket_SocketDisconnected(object sender,
-            Windows.Networking.Sockets.WebSocketClosedEventArgs e)
+            WebsocketclosedEventArgs e)
         {
 
         }

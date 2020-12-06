@@ -217,6 +217,7 @@ namespace SpotifyLib
         /// <param name="deviceType"><see cref="DeviceType"/></param>
         /// <param name="deviceName">string to display on spotify connect</param>
         /// <param name="conf">Configuration file. See <see cref="Configuration"/></param>
+        /// <param name="ws">An implementation of the abstract class: <see cref="WebsocketHandler"/></param>
         /// <param name="preferredLocale">2 letter locale code. Default = English</param>
         /// <param name="overrideAdress"></param>
         /// <returns><see cref="SpotifySession"/></returns>
@@ -228,6 +229,7 @@ namespace SpotifyLib
             DeviceType deviceType,
             string deviceName,
             Configuration conf,
+            WebsocketHandler ws,
             string preferredLocale = "en",
             string overrideAdress = null)
         {
@@ -249,7 +251,7 @@ namespace SpotifyLib
                 };
             await session._conn;
             session.Connect();
-            await session.Authenticate(session._loginCredentials);
+            await session.Authenticate(session._loginCredentials, ws);
             return session;
         }
 
@@ -446,7 +448,9 @@ namespace SpotifyLib
         /// </summary>
         /// <param name="credentials"><see cref="Spotify.LoginCredentials"/></param>
         /// <exception cref="MercuryException"></exception>
-        private async Task Authenticate([NotNull] Spotify.LoginCredentials credentials)
+        private async Task Authenticate(
+            [NotNull] Spotify.LoginCredentials credentials,
+            [NotNull] WebsocketHandler handler)
         {
             AuthenticatePartial(credentials, false);
 
@@ -457,7 +461,7 @@ namespace SpotifyLib
                 _eventService = new EventService(this);
                 _tokenProvider = new TokenProvider(this);
                 _apiClient = await ApiClient.BuildApiClient(this);
-                _dealer = new DealerClient(this);
+                _dealer = new DealerClient(this, handler);
                 //_audioKeyManager = new AudioKeyManager(this);
                 //  _channelManager = new ChannelManager(this);
                 //  _cdn = new CdnManager(this);
