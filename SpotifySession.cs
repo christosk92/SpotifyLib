@@ -28,6 +28,7 @@ using SpotifyLib.Helpers;
 using SpotifyLib.Interfaces;
 using SpotifyLib.Mercury;
 using SpotifyLib.Models;
+using SpotifyLib.Models.Api.Response;
 using SpotifyLib.Services;
 
 namespace SpotifyLib
@@ -128,7 +129,7 @@ namespace SpotifyLib
         private Nito.AsyncEx.AsyncLock _sendLock = new AsyncLock();
         private DealerClient _dealer;
         private PrivateUser _currentUser;
-        private AudioKeyManager _audioKeyManager;
+        //private AudioKeyManager _audioKeyManager;
         private MercuryClient _mercuryClient;
         private TokenProvider _tokenProvider;
         private APWelcome _apWelcome;
@@ -453,7 +454,7 @@ namespace SpotifyLib
                 _tokenProvider = new TokenProvider(this);
                 _apiClient = await ApiClient.BuildApiClient(this);
                 _dealer = new DealerClient(this);
-                _audioKeyManager = new AudioKeyManager(this);
+                //_audioKeyManager = new AudioKeyManager(this);
               //  _channelManager = new ChannelManager(this);
               //  _cdn = new CdnManager(this);
                // _cache = new CacheManager(_inner.Conf);
@@ -564,12 +565,12 @@ namespace SpotifyLib
             GuardAgainst.ArgumentBeingNull(_mercuryClient, exceptionMessage: "Session isn't authenticated");
             return _dealer;
         }
-        public AudioKeyManager AudioKey()
+       /* public AudioKeyManager AudioKey()
         {
             WaitAuthLock();
             GuardAgainst.ArgumentBeingNull(_audioKeyManager, exceptionMessage: "Session isn't authenticated");
             return _audioKeyManager;
-        }
+        }*/
         public MercuryClient Mercury()
         {
             WaitAuthLock();
@@ -865,7 +866,7 @@ namespace SpotifyLib
                                     break;
                                 case MercuryPacket.Type.AesKey:
                                 case MercuryPacket.Type.AesKeyError:
-                                    _session.AudioKey().Dispatch(packet);
+                                   // _session.AudioKey().Dispatch(packet);
                                     break;
                                 case MercuryPacket.Type.ChannelError:
                                 case MercuryPacket.Type.StreamChunkRes:
