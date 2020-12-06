@@ -1,4 +1,5 @@
-﻿using Refit;
+﻿using GuardAgainstLib;
+using Refit;
 using SpotifyLib.Attributes;
 
 namespace SpotifyLib.Models.Api.Requests
@@ -7,7 +8,7 @@ namespace SpotifyLib.Models.Api.Requests
     {
         public PlayerSetRepeatRequest(RepeatState state)
         {
-            Ensure.ArgumentNotNull(state, nameof(state));
+            // GuardAgainst.ArgumentBeingNull(state, nameof(state));
 
             StateParam = state;
         }

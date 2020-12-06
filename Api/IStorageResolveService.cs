@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Refit;
 using SpotifyLib.Attributes;
+using SpotifyLib.Models.Api.Response;
 
 namespace SpotifyLib.Api
 {

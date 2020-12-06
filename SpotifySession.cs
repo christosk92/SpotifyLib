@@ -1,21 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Connectstate;
+﻿using Connectstate;
 using Google.Protobuf;
 using GuardAgainstLib;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json;
 using Nito.AsyncEx;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
@@ -30,12 +17,23 @@ using SpotifyLib.Mercury;
 using SpotifyLib.Models;
 using SpotifyLib.Models.Api.Response;
 using SpotifyLib.Services;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SpotifyLib
 {
     internal class Inner
     {
-
         internal readonly DeviceType DeviceType;
         internal readonly string DeviceName;
         internal readonly Random Random;
@@ -62,7 +60,6 @@ namespace SpotifyLib
 
     public class SpotifySession : ISubListener, IMessageListener
     {
-
         /// <summary>
         /// Only use if neccesary!
         /// </summary>
@@ -117,6 +114,7 @@ namespace SpotifyLib
             (byte) 0x13, (byte) 0x87, (byte) 0x3c, (byte) 0xd7,
             (byte) 0x19, (byte) 0xe6, (byte) 0x55, (byte) 0xbd
         };
+
         private readonly DiffieHellman _keys;
         private readonly Inner _inner;
         private Task<SpotifyConnection> _conn;
@@ -129,16 +127,20 @@ namespace SpotifyLib
         private Nito.AsyncEx.AsyncLock _sendLock = new AsyncLock();
         private DealerClient _dealer;
         private PrivateUser _currentUser;
+
         //private AudioKeyManager _audioKeyManager;
         private MercuryClient _mercuryClient;
+
         private TokenProvider _tokenProvider;
         private APWelcome _apWelcome;
         private ApiClient _apiClient;
-     //   private PlayableContentFeeder _contentFeeder;
+
+        //   private PlayableContentFeeder _contentFeeder;
         private CancellationToken _closedToken;
-      //  private ChannelManager _channelManager;
-       //   private CdnManager _cdn;
-       // private CacheManager _cache;
+
+        //  private ChannelManager _channelManager;
+        //   private CdnManager _cdn;
+        // private CacheManager _cache;
         public readonly ConcurrentDictionary<string, string> UserAttributes =
             new ConcurrentDictionary<string, string>();
 
@@ -159,13 +161,15 @@ namespace SpotifyLib
         public event EventHandler<ClusterUpdate> CurrentlyPlayingChanged;
 
         public static IMemoryCache Cache;
+
         public void OnCurrentlyPlayingChanged(ClusterUpdate val)
         {
             CurrentlyPlayingChanged?.Invoke(this, val);
         }
+
         private SpotifySession([NotNull] Inner inner,
             CancellationToken closedToken,
-            [CanBeNull]string address)
+            [CanBeNull] string address)
         {
             _recvNonce = 0;
             _sendNonce = 0;
@@ -178,6 +182,7 @@ namespace SpotifyLib
             Debug.WriteLine($"Created new session! deviceId: {inner.DeviceId}, ap: {address}");
             Current = this;
         }
+
         public string DeviceId => _inner?.DeviceId;
         public string DeviceName => _inner?.DeviceName;
         public DeviceType? DeviceType => _inner?.DeviceType;
@@ -185,7 +190,6 @@ namespace SpotifyLib
 
         public SpotifySession()
         {
-
         }
 
         public string Username => _apWelcome.CanonicalUsername;
@@ -219,7 +223,7 @@ namespace SpotifyLib
         /// <exception cref="UnauthorizedAccessException">When trying to authenticated with <seealso cref="StoredAuthenticator"/> but no file is saved</exception>
         /// <exception cref="SpotifyAuthenticatedException">When credentials are invalid.</exception>
         public static async Task<SpotifySession> CreateAsync(
-            IAuthenticator authenticator, 
+            IAuthenticator authenticator,
             CancellationToken cts,
             DeviceType deviceType,
             string deviceName,
@@ -233,9 +237,9 @@ namespace SpotifyLib
             var deviceId = Utils.RandomHexString(new Random(), 40).ToLower();
             var session =
                 new SpotifySession(
-                    new Inner(deviceType, 
-                        deviceName, 
-                        deviceId, 
+                    new Inner(deviceType,
+                        deviceName,
+                        deviceId,
                         preferredLocale,
                         conf),
                     cts,
@@ -257,6 +261,7 @@ namespace SpotifyLib
         private void Connect()
         {
             #region ClientHello Setup
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             var clientHello = new ClientHello
@@ -265,7 +270,7 @@ namespace SpotifyLib
                 {
                     Platform = Platform.Win32X86,
                     Product = Product.Client,
-                    ProductFlags = {ProductFlags.ProductFlagNone},
+                    ProductFlags = { ProductFlags.ProductFlagNone },
                     Version = 112800721
                 }
             };
@@ -314,13 +319,13 @@ namespace SpotifyLib
 
             var lnarr = Utils.toByteArray(length);
             accumulator.Write(lnarr, 0, lnarr.Length);
-            accumulator.Write((byte[]) clientHelloBytes, 0, clientHelloBytes.Length);
+            accumulator.Write((byte[])clientHelloBytes, 0, clientHelloBytes.Length);
 
             var lenArr = Utils.toByteArray(len);
             accumulator.Write(lenArr, 0, lenArr.Length);
-            accumulator.Write((byte[]) tmp, 0, tmp.Length);
+            accumulator.Write((byte[])tmp, 0, tmp.Length);
 
-            #endregion
+            #endregion ClientHello Setup
 
             //Read APResponseMessage
 
@@ -330,7 +335,6 @@ namespace SpotifyLib
             var apResponseMessage = APResponseMessage.Parser.ParseFrom(tmp);
             var sharedKey = Utils.toByteArray(_keys.ComputeSharedKey(apResponseMessage
                 .Challenge.LoginCryptoChallenge.DiffieHellman.Gs.ToByteArray()));
-
 
             // Check gs_signature
             var rsa = new RSACryptoServiceProvider();
@@ -360,7 +364,7 @@ namespace SpotifyLib
             for (var i = 1; i < 6; i++)
             {
                 mac.TransformBlock(binaryData, 0, binaryData.Length, null, 0);
-                var temp = new byte[] {(byte) i};
+                var temp = new byte[] { (byte)i };
                 mac.TransformBlock(temp, 0, temp.Length, null, 0);
                 mac.TransformFinalBlock(new byte[0], 0, 0);
                 var final = mac.Hash;
@@ -421,7 +425,7 @@ namespace SpotifyLib
                 _conn.Result.NetworkStream.ReadTimeout = Timeout.Infinite;
             }
 
-            using(_authLock.Lock())
+            using (_authLock.Lock())
             {
                 _sendCipher = new Shannon();
                 _sendCipher.key(Arrays.CopyOfRange(data.ToArray(), 0x14, 0x34));
@@ -431,7 +435,7 @@ namespace SpotifyLib
                 _authLockEventWaitHandle.Set();
             }
 
-            #endregion
+            #endregion APResponse
 
             Debug.WriteLine("Connected successfully");
         }
@@ -455,15 +459,14 @@ namespace SpotifyLib
                 _apiClient = await ApiClient.BuildApiClient(this);
                 _dealer = new DealerClient(this);
                 //_audioKeyManager = new AudioKeyManager(this);
-              //  _channelManager = new ChannelManager(this);
-              //  _cdn = new CdnManager(this);
-               // _cache = new CacheManager(_inner.Conf);
-             //   _contentFeeder = new PlayableContentFeeder(this);
+                //  _channelManager = new ChannelManager(this);
+                //  _cdn = new CdnManager(this);
+                // _cache = new CacheManager(_inner.Conf);
+                //   _contentFeeder = new PlayableContentFeeder(this);
                 _authLockEventWaitHandle.Set();
             }
 
             _receiver = new Receiver(this);
-
 
             _eventService.Language(_inner.PreferredLocale);
             TimeProvider.Init(this);
@@ -505,51 +508,52 @@ namespace SpotifyLib
             switch (packet.Cmd)
             {
                 case MercuryPacket.Type.APWelcome:
-                {
-                    _apWelcome = APWelcome.Parser.ParseFrom(packet.Payload);
-                    var bytes0X0F = new byte[20];
-                    (new Random()).NextBytes(bytes0X0F);
-                    SendUnchecked(MercuryPacket.Type.Unknown_0x0f, bytes0X0F, _closedToken);
-
-                    using var preferredLocale = new MemoryStream(18 + 5);
-                    preferredLocale.WriteByte((byte)0x0);
-                    preferredLocale.WriteByte((byte)0x0);
-                    preferredLocale.WriteByte((byte)0x10);
-                    preferredLocale.WriteByte((byte)0x0);
-                    preferredLocale.WriteByte((byte)0x02);
-                    preferredLocale.Write("preferred-locale");
-                    preferredLocale.Write(_inner.PreferredLocale);
-                    SendUnchecked(MercuryPacket.Type.PreferredLocale, preferredLocale.ToArray(), _closedToken);
-                    if (removeLock)
                     {
-                        using (_authLock.Lock())
-                        {
-                            _authLockEventWaitHandle.Set();
-                        }
-                    }
+                        _apWelcome = APWelcome.Parser.ParseFrom(packet.Payload);
+                        var bytes0X0F = new byte[20];
+                        (new Random()).NextBytes(bytes0X0F);
+                        SendUnchecked(MercuryPacket.Type.Unknown_0x0f, bytes0X0F, _closedToken);
 
-                    try
-                    {
-                        if (_inner.Conf.StoreCredentials)
+                        using var preferredLocale = new MemoryStream(18 + 5);
+                        preferredLocale.WriteByte((byte)0x0);
+                        preferredLocale.WriteByte((byte)0x0);
+                        preferredLocale.WriteByte((byte)0x10);
+                        preferredLocale.WriteByte((byte)0x0);
+                        preferredLocale.WriteByte((byte)0x02);
+                        preferredLocale.Write("preferred-locale");
+                        preferredLocale.Write(_inner.PreferredLocale);
+                        SendUnchecked(MercuryPacket.Type.PreferredLocale, preferredLocale.ToArray(), _closedToken);
+                        if (removeLock)
                         {
-                            var jsonObj = new StoredCredentials
+                            using (_authLock.Lock())
                             {
-                                AuthenticationType = _apWelcome.ReusableAuthCredentialsType,
-                                Base64Credentials = _apWelcome.ReusableAuthCredentials.ToBase64(),
-                                Username = _apWelcome.CanonicalUsername
-                            };
-                            ApplicationData.Current.LocalSettings.Values["auth_data"] =
-                                JsonConvert.SerializeObject(jsonObj);
+                                _authLockEventWaitHandle.Set();
+                            }
                         }
-                    }
-                    catch (Exception x)
-                    {
-                        Debug.WriteLine(x.ToString());
-                        throw;
-                    }
 
-                    break;
-                }
+                        try
+                        {
+                            if (_inner.Conf.StoreCredentials)
+                            {
+                                var jsonObj = new StoredCredentials
+                                {
+                                    AuthenticationType = _apWelcome.ReusableAuthCredentialsType,
+                                    Base64Credentials = _apWelcome.ReusableAuthCredentials.ToBase64(),
+                                    Username = _apWelcome.CanonicalUsername
+                                };
+                                _inner.Conf.StoreCredentialsFunction(jsonObj);
+                                //  ApplicationData.Current.LocalSettings.Values["auth_data"] =
+                                // JsonConvert.SerializeObject(jsonObj);
+                            }
+                        }
+                        catch (Exception x)
+                        {
+                            Debug.WriteLine(x.ToString());
+                            throw;
+                        }
+
+                        break;
+                    }
                 case MercuryPacket.Type.AuthFailure:
                     throw new SpotifyAuthenticatedException(APLoginFailed.Parser.ParseFrom(packet.Payload));
                 default:
@@ -565,12 +569,14 @@ namespace SpotifyLib
             GuardAgainst.ArgumentBeingNull(_mercuryClient, exceptionMessage: "Session isn't authenticated");
             return _dealer;
         }
-       /* public AudioKeyManager AudioKey()
-        {
-            WaitAuthLock();
-            GuardAgainst.ArgumentBeingNull(_audioKeyManager, exceptionMessage: "Session isn't authenticated");
-            return _audioKeyManager;
-        }*/
+
+        /* public AudioKeyManager AudioKey()
+         {
+             WaitAuthLock();
+             GuardAgainst.ArgumentBeingNull(_audioKeyManager, exceptionMessage: "Session isn't authenticated");
+             return _audioKeyManager;
+         }*/
+
         public MercuryClient Mercury()
         {
             WaitAuthLock();
@@ -578,12 +584,12 @@ namespace SpotifyLib
             return _mercuryClient;
         }
 
-       // public ChannelManager Channel()
-       // {
-         //   WaitAuthLock();
-         //   GuardAgainst.ArgumentBeingNull(_channelManager, exceptionMessage: "Session isn't authenticated");
-         //   return _channelManager;
-       // }
+        // public ChannelManager Channel()
+        // {
+        //   WaitAuthLock();
+        //   GuardAgainst.ArgumentBeingNull(_channelManager, exceptionMessage: "Session isn't authenticated");
+        //   return _channelManager;
+        // }
 
         public TokenProvider Tokens()
         {
@@ -599,9 +605,9 @@ namespace SpotifyLib
             return _apiClient;
         }
 
-     //   public PlayableContentFeeder ContentFeeder()
-       // {
-       //     WaitAuthLock();
+        //   public PlayableContentFeeder ContentFeeder()
+        // {
+        //     WaitAuthLock();
         //    GuardAgainst.ArgumentBeingNull(_contentFeeder, exceptionMessage: "Session isn't authenticated");
         //    return _contentFeeder;
         //}
@@ -613,19 +619,19 @@ namespace SpotifyLib
             return _eventService;
         }
 
-      //  public CdnManager Cdn()
+        //  public CdnManager Cdn()
         //{
         //    WaitAuthLock();
-         //   GuardAgainst.ArgumentBeingNull(_cdn, exceptionMessage: "Session isn't authenticated");
-         //   return _cdn;
-      //  }
+        //   GuardAgainst.ArgumentBeingNull(_cdn, exceptionMessage: "Session isn't authenticated");
+        //   return _cdn;
+        //  }
 
         // public CacheManager CacheManager()
-       // {
+        // {
         //    WaitAuthLock();
-         //   GuardAgainst.ArgumentBeingNull(_cache, exceptionMessage: "Session isn't authenticated");
-         //   return _cache;
-       // }
+        //   GuardAgainst.ArgumentBeingNull(_cache, exceptionMessage: "Session isn't authenticated");
+        //   return _cache;
+        // }
         internal void Send(MercuryPacket.Type cmd, byte[] payload)
         {
             if (_closedToken.IsCancellationRequested)
@@ -634,7 +640,7 @@ namespace SpotifyLib
                 return;
             }
 
-            using(_authLock.Lock())
+            using (_authLock.Lock())
             {
                 if (_sendCipher == null)
                 {
@@ -648,21 +654,20 @@ namespace SpotifyLib
                     }
                 }
 
-                SendUnchecked(cmd, 
-                    payload, 
+                SendUnchecked(cmd,
+                    payload,
                     CancellationToken.None);
             }
         }
-
 
         private void SendUnchecked(MercuryPacket.Type cmd, byte[] payload, CancellationToken cts)
         {
             using (_sendLock.Lock(cts))
             {
                 var a = _conn.Result.NetworkStream;
-                var payloadLengthAsByte = BitConverter.GetBytes((short) payload.Length).Reverse().ToArray();
+                var payloadLengthAsByte = BitConverter.GetBytes((short)payload.Length).Reverse().ToArray();
                 var yetAnotherBuffer = new MemoryStream(3 + payload.Length);
-                yetAnotherBuffer.WriteByte((byte) cmd);
+                yetAnotherBuffer.WriteByte((byte)cmd);
                 yetAnotherBuffer.Write(payloadLengthAsByte, 0, payloadLengthAsByte.Length);
                 yetAnotherBuffer.Write(payload, 0, payload.Length);
 
@@ -680,7 +685,6 @@ namespace SpotifyLib
             }
         }
 
-
         internal MercuryPacket Receive(NetworkStream a, CancellationToken cts)
         {
             using (_recvLock.Lock(cts))
@@ -689,11 +693,11 @@ namespace SpotifyLib
                 Interlocked.Increment(ref _recvNonce);
 
                 var headerBytes = new byte[3];
-                a.ReadComplete(headerBytes,0,headerBytes.Length);
+                a.ReadComplete(headerBytes, 0, headerBytes.Length);
                 _recvCipher.decrypt(headerBytes);
 
                 var cmd = headerBytes[0];
-                short payloadLength = (short) ((headerBytes[1] << 8) | (headerBytes[2] & 0xFF));
+                short payloadLength = (short)((headerBytes[1] << 8) | (headerBytes[2] & 0xFF));
 
                 var payloadBytes = new byte[payloadLength];
                 a.ReadComplete(payloadBytes, 0, payloadBytes.Length);
@@ -704,7 +708,7 @@ namespace SpotifyLib
 
                 byte[] expectedMac = new byte[4];
                 _recvCipher.finish(expectedMac);
-                return new MercuryPacket((MercuryPacket.Type) cmd, payloadBytes);
+                return new MercuryPacket((MercuryPacket.Type)cmd, payloadBytes);
             }
         }
 
@@ -800,6 +804,7 @@ namespace SpotifyLib
             }
 
             public void Stop() => _cts.Cancel();
+
             private static void ParseProductInfo(byte[] @in)
             {
                 Debug.WriteLine(Encoding.Default.GetString(@in));
@@ -837,12 +842,15 @@ namespace SpotifyLib
                                         Debug.WriteLine("Failed sending Pong!", ex);
                                     }
                                     break;
+
                                 case MercuryPacket.Type.PongAck:
                                     break;
+
                                 case MercuryPacket.Type.CountryCode:
                                     _session.CountryCode = Encoding.Default.GetString(packet.Payload);
                                     Debug.WriteLine("Received CountryCode: " + _session.CountryCode);
                                     break;
+
                                 case MercuryPacket.Type.LicenseVersion:
                                     Debug.WriteLine($"Received LicenseVersion: {Encoding.Default.GetString(packet.Payload)}");
                                     //ByteBuffer licenseVersion = ByteBuffer.wrap(packet.Payload);
@@ -858,20 +866,24 @@ namespace SpotifyLib
                                     //    LogManager.Log($"Received LicenseVersion: {id}");
                                     // }
                                     break;
+
                                 case MercuryPacket.Type.MercuryReq:
                                 case MercuryPacket.Type.MercurySub:
                                 case MercuryPacket.Type.MercuryUnsub:
                                 case MercuryPacket.Type.MercuryEvent:
                                     _session.Mercury().Dispatch(packet);
                                     break;
+
                                 case MercuryPacket.Type.AesKey:
                                 case MercuryPacket.Type.AesKeyError:
-                                   // _session.AudioKey().Dispatch(packet);
+                                    // _session.AudioKey().Dispatch(packet);
                                     break;
+
                                 case MercuryPacket.Type.ChannelError:
                                 case MercuryPacket.Type.StreamChunkRes:
                                     //_session.Channel().Dispatch(packet);
                                     break;
+
                                 case MercuryPacket.Type.ProductInfo:
                                     try
                                     {
@@ -883,6 +895,7 @@ namespace SpotifyLib
                                     }
 
                                     break;
+
                                 case MercuryPacket.Type.Unknown_0x10:
                                     Debug.WriteLine("Received 0x10 : " + Utils.bytesToHex(packet.Payload));
                                     break;
@@ -911,7 +924,6 @@ namespace SpotifyLib
                     }
                 }
                 Debug.WriteLine("Session.Receiver Stopped");
-
             }
         }
 
@@ -926,7 +938,7 @@ namespace SpotifyLib
                 }
                 catch (IOException ex)
                 {
-                   // LOGGER.error("Failed closing session due to logout.", ex);
+                    // LOGGER.error("Failed closing session due to logout.", ex);
                 }
             }
 

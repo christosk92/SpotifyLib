@@ -3,10 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SpotifyLib.Enums;
 
 namespace SpotifyLib.Models.Api.Response
 {
-	public class FullTrack : GenericSpotifyItem, IApiItem, IComparable<FullTrack>, IComparable
+	public class FullTrack : GenericSpotifyItem, IComparable<FullTrack>, IComparable
     {
         public event EventHandler<FullTrack> RequestPlay;
         public bool IsSaved { get; set; }
@@ -29,7 +30,7 @@ namespace SpotifyLib.Models.Api.Response
         public int TrackNumber { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
-        public ItemType Type { get; set; }
+        public SpotifyType Type { get; set; }
 
         [JsonIgnore]
         public DateTime AddedAt { get; set; }

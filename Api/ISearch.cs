@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Refit;
 using SpotifyLib.Attributes;
+using SpotifyLib.Models.Mercury;
 
 namespace SpotifyLib.Api
 {

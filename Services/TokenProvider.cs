@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using SpotifyLib.Mercury;
+using SpotifyLib.Models.Mercury;
 
 namespace SpotifyLib.Services
 {
@@ -31,12 +34,12 @@ namespace SpotifyLib.Services
                 else return token;
             }
 
-            LogManager.Log(
+            Debug.WriteLine(
                 $"Token expired or not suitable, requesting again. scopes: {string.Join(",", scopes)}, oldToken: {token}");
 
             token = _session.Mercury().SendSync(MercuryRequests.RequestToken(_session.DeviceId, scopes));
 
-            LogManager.Log($"Updated token successfully! scopes: {string.Join(",", scopes)}, newToken: {token}");
+            Debug.WriteLine($"Updated token successfully! scopes: {string.Join(",", scopes)}, newToken: {token}");
             tokens.Add(token);
             return token;
         }

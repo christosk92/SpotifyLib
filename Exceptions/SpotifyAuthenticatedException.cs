@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Spotify;
 
 namespace SpotifyLib.Exceptions
@@ -7,7 +8,7 @@ namespace SpotifyLib.Exceptions
     {
         public SpotifyAuthenticatedException(APLoginFailed loginFailed) : base(loginFailed.ErrorCode.ToString())
         {
-            LogManager.Log(loginFailed.ErrorDescription);
+            Debug.WriteLine(loginFailed.ErrorDescription);
         }
     }
 }

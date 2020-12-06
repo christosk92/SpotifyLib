@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
+using SpotifyLib.Enums;
+using SpotifyLib.Events;
+using SpotifyLib.Mercury;
 
 namespace SpotifyLib.Services
 {
@@ -31,12 +35,12 @@ namespace SpotifyLib.Services
                 req.AddUserField("X-ClientTimeStamp", TimeProvider.CurrentTimeMillis().ToString());
 
                 MercuryResponse resp = _session.Mercury().SendSync(req);
-                LogManager.Log(
+                Debug.WriteLine(
                     $"Event sent. body: {EventBuilder.ToString(body)}, result: {resp.StatusCode.ToString()}");
             }
             catch (IOException ex)
             {
-                LogManager.Log("Failed sending event: " + builder + ex.ToString());
+                Debug.WriteLine("Failed sending event: " + builder + ex.ToString());
             }
         }
 

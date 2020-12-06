@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Connectstate;
 using Refit;
 using SpotifyLib.Attributes;
+using SpotifyLib.Models.Api.Requests;
 
 namespace SpotifyLib.Api
 {

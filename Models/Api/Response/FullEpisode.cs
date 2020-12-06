@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SpotifyLib.Enums;
 
 namespace SpotifyLib.Models.Api.Response
 {
-    public class FullEpisode : GenericSpotifyItem, IApiItem
+    public class FullEpisode : GenericSpotifyItem
     {
         public string AudioPreviewUrl { get; set; } = default!;
 
@@ -39,7 +40,7 @@ namespace SpotifyLib.Models.Api.Response
         public SimpleShow Show { get; set; } = default!;
 
         [JsonConverter(typeof(StringEnumConverter))]
-        public ItemType Type { get; set; }
+        public SpotifyType Type { get; set; }
     }
 }
 

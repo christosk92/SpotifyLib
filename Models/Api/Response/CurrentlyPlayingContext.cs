@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Spotify.Player.Proto;
+using SpotifyLib.Helpers;
 
 namespace SpotifyLib.Models.Api.Response
 {
@@ -24,7 +25,7 @@ namespace SpotifyLib.Models.Api.Response
         public bool IsPlaying { get; set; }
 
         [JsonConverter(typeof(PlayableItemConverter))]
-        public IApiItem Item { get; set; } = default!;
+        public GenericSpotifyItem Item { get; set; } = default!;
 
         public string CurrentlyPlayingType { get; set; } = default!;
     }

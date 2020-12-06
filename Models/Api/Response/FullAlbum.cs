@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using SpotifyLib.Models.Api.Paging;
-using Image = SpotifyUwp.Core.Models.Image;
 
 namespace SpotifyLib.Models.Api.Response
 {

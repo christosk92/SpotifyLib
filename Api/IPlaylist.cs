@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Refit;
 using SpotifyLib.Attributes;
+using SpotifyLib.Models;
+using SpotifyLib.Models.Api;
 using SpotifyLib.Models.Api.Paging;
 using SpotifyLib.Models.Api.Requests;
 using SpotifyLib.Models.Api.Response;
@@ -62,7 +64,7 @@ namespace SpotifyLib.Api
         Task<Paging<SimplePlaylist>> GetUserPlaylists();
 
         [Get("/v1/playlists/{plistId}/tracks")]
-        Task<Paging<PlaylistTrack<IApiItem>>> GetPlaylistTracks(string plistId, PlaylistTracksRequest request);
+        Task<Paging<PlaylistTrack<GenericSpotifyItem>>> GetPlaylistTracks(string plistId, PlaylistTracksRequest request);
 
         /// <summary>
         /// Reorder an item or a group of items in a playlist.

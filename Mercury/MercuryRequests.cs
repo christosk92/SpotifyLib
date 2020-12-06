@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 using Spotify;
+using SpotifyLib.Ids;
+using SpotifyLib.Models.Mercury;
 
 namespace SpotifyLib.Mercury
 {

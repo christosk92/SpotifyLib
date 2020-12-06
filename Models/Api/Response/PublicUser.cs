@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SpotifyLib.Models.Mercury;
 
 namespace SpotifyLib.Models.Api.Response
 {

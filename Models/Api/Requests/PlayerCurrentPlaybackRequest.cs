@@ -1,5 +1,7 @@
 ﻿using System;
+using GuardAgainstLib;
 using Refit;
+using SpotifyLib.Attributes;
 
 namespace SpotifyLib.Models.Api.Requests
 {
@@ -30,8 +32,6 @@ namespace SpotifyLib.Models.Api.Requests
         public PlayerCurrentPlaybackRequest(
             AdditionalTypes types = AdditionalTypes.All)
         {
-            Ensure.ArgumentNotNull(types, nameof(types));
-
             AdditionalTypesParam = types;
         }
 

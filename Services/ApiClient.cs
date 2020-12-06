@@ -3,7 +3,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Refit;
+using SpotifyLib.Api;
+using SpotifyLib.Attributes;
+using SpotifyLib.Authenticators;
+using SpotifyLib.Helpers;
 
 namespace SpotifyLib.Services
 {
@@ -69,6 +74,7 @@ namespace SpotifyLib.Services
             c.DefaultRequestHeaders.Add("Accept", "application/json");
             var createdService = RestService.For<T1>(c);
             ServiceLocator.Instance.Register(createdService);
+
             return createdService;
         }
 

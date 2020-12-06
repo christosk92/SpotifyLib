@@ -9,7 +9,7 @@ namespace SpotifyLib.Helpers
     {
         private static ConcurrentDictionary<Type, T> _instances = new ConcurrentDictionary<Type, T>();
 
-        public static T ImplementedInstance(T implementation) =>
+        public static void ImplementedInstance(T implementation) =>
             _instances.GetOrAdd(typeof(T),
                 (t) => implementation);
 
