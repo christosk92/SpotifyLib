@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using GuardAgainstLib;
 using Refit;
 
 namespace SpotifyLib.Models.Api.Requests
@@ -11,7 +12,7 @@ namespace SpotifyLib.Models.Api.Requests
         /// <param name="ids">A comma-separated list of the Spotify IDs for the albums. Maximum: 20 IDs.</param>
         public AlbumsRequest(IList<string> ids)
         {
-            Ensure.ArgumentNotNullOrEmptyList(ids, nameof(ids));
+            GuardAgainst.ArgumentBeingNullOrEmpty(ids, nameof(ids));
 
             Ids = ids;
         }

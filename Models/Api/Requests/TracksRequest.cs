@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using GuardAgainstLib;
 using Refit;
 
 namespace SpotifyLib.Models.Api.Requests
@@ -29,7 +30,7 @@ namespace SpotifyLib.Models.Api.Requests
         public TracksRequest(
             IList<string> ids)
         {
-            Ensure.ArgumentNotNullOrEmptyList(ids, nameof(ids));
+            GuardAgainst.ArgumentBeingNullOrEmpty(ids, nameof(ids));
 
             Ids = ids;
         }

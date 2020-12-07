@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 
 namespace SpotifyLib.Models.Api.Response

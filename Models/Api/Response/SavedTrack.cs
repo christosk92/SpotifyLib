@@ -9,7 +9,7 @@ namespace SpotifyLib.Models.Api.Response
     {
         public SavedTrack()
         {
-            base.IsSaved = true;
+            //base.IsSaved = true;
         }
         private static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 

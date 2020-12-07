@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using GuardAgainstLib;
 using Refit;
 
 namespace SpotifyLib.Models.Api.Requests
@@ -20,8 +21,7 @@ namespace SpotifyLib.Models.Api.Requests
         public LibraryCheckTracksRequest(
             IList<string> ids)
         {
-            Ensure.ArgumentNotNull(ids, nameof(ids));
-
+            GuardAgainst.ArgumentBeingNullOrEmpty(ids, nameof(ids));
             Ids = ids;
         }
     }

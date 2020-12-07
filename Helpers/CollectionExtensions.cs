@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace SpotifyLib.Helpers
 {
@@ -52,6 +53,22 @@ namespace SpotifyLib.Helpers
         {
             foreach (T obj in source)
                 destination.Add(obj);
+        }
+        public static bool Swap<T>(this IEnumerable<T> objectArray, int x, int y)
+        {
+
+            // check for out of range
+            var enumerable = objectArray as T[] ?? objectArray.ToArray();
+            if (enumerable.Length <= y || enumerable.Length <= x) return false;
+
+
+            // swap index x and y
+            T buffer = enumerable[x];
+            enumerable[x] = enumerable[y];
+            enumerable[y] = buffer;
+
+
+            return true;
         }
     }
 }

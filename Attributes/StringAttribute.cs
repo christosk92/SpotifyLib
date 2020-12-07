@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using GuardAgainstLib;
 
 namespace SpotifyLib.Attributes
 {
@@ -16,8 +17,8 @@ namespace SpotifyLib.Attributes
 #nullable enable
         public static bool GetValue(Type enumType, Enum enumValue, out string? result)
         {
-            Ensure.ArgumentNotNull(enumType, nameof(enumType));
-            Ensure.ArgumentNotNull(enumValue, nameof(enumValue));
+            GuardAgainst.ArgumentBeingNull(enumType, nameof(enumType));
+            GuardAgainst.ArgumentBeingNull(enumValue, nameof(enumValue));
 
             if (enumType
               .GetMember(enumValue.ToString())[0]

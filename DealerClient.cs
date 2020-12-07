@@ -64,7 +64,6 @@ namespace SpotifyLib
                 $"wss://{(await _apResolver.GetClosestDealerAsync()).Replace("https://", string.Empty)}/?access_token={_session.Tokens().GetToken("playlist-read").AccessToken}"));
         }
 
-
         private async Task HandleRequest(JObject obj)
         {
             Debug.Assert(obj != null, nameof(obj) + " != null");
@@ -105,6 +104,7 @@ namespace SpotifyLib
             }
             if (!interesting) Debug.WriteLine("Couldn't dispatch request: " + mid);
         }
+
         async Task SendReply([NotNull] string key, [NotNull] RequestResult result)
         {
             var success = result == RequestResult.Success;
@@ -112,7 +112,6 @@ namespace SpotifyLib
                 $"{{\"type\":\"reply\", \"key\": \"{key.ToLower()}\", \"payload\": {{\"success\": {success.ToString().ToLowerInvariant()}}}}}";
             await _webSocket.SendMessageAsync(reply);
         }
-
         private void HandleMessage(JObject obj)
         {
             Debug.Assert(obj != null, nameof(obj) + " != null");
@@ -174,7 +173,6 @@ namespace SpotifyLib
 
             if (!interesting) Debug.WriteLine("Couldn't dispatch message: " + uri);
         }
-
         private void WaitForListeners()
         {
             lock (_msgListeners)
@@ -191,7 +189,6 @@ namespace SpotifyLib
                 //ignored
             }
         }
-
         public void AddMessageListener([NotNull] IMessageListener listener, [NotNull] params string[] uris)
         {
             lock (_msgListeners)
@@ -203,7 +200,6 @@ namespace SpotifyLib
                 _msgListenersLock.Set();
             }
         }
-
         public void RemoveMessageListener([NotNull] IMessageListener listener)
         {
             lock (_msgListeners)
@@ -211,7 +207,6 @@ namespace SpotifyLib
                 _msgListeners.TryRemove(listener, out var ignore);
             }
         }
-
         public void AddRequestListener([NotNull] IRequestListener listener, [NotNull] string uri)
         {
             lock (_reqListeners)
@@ -223,7 +218,6 @@ namespace SpotifyLib
                 _reqListenersLock.Reset();
             }
         }
-
         public void RemoveRequestListener([NotNull] IRequestListener listener)
         {
             lock (_reqListeners)
@@ -231,8 +225,6 @@ namespace SpotifyLib
                 _reqListeners.Values.Remove(listener);
             }
         }
-
-
         private void WebSocket_SocketConnected(object sender, string e)
         {
             if (_closed)
@@ -243,13 +235,11 @@ namespace SpotifyLib
 
             Debug.WriteLine("Dealer connected! host: {0}", e?.ToString());
         }
-
         private void WebSocket_SocketDisconnected(object sender,
             WebsocketclosedEventArgs e)
         {
 
         }
-
         private async void WebSocket_MessageReceived(object sender, string e)
         {
             var obj = JObject.Parse(e);
@@ -288,7 +278,6 @@ namespace SpotifyLib
                     throw new ArgumentOutOfRangeException();
             }
         }
-
         public void Dispose()
         {
             _msgListenersLock?.Dispose();
