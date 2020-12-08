@@ -2,13 +2,23 @@
 using System.Collections.Generic;
 using System.Text;
 using Connectstate;
+using JetBrains.Annotations;
+using Spotify.Player.Proto;
 using SpotifyLib.Enums;
 using SpotifyLib.Helpers;
+using SpotifyLib.Ids;
 using SpotifyLib.Models.Api.Requests;
 using SpotifyLib.SpotifyConnect.Handlers;
 
 namespace SpotifyLib.SpotifyConnect
 {
+    public enum NextType
+    {
+        Error,
+        Next,
+        Command,
+        Autoplay
+    }
     public class DeviceChanged
     {
         internal DeviceChanged(string deviceId, bool isOwnDevice)
@@ -31,6 +41,19 @@ namespace SpotifyLib.SpotifyConnect
         public double SeekTo { get; }
     }
 
+    public class NextRequested
+    {
+        internal NextRequested(
+            [CanBeNull] IPlayableId track,
+            NextType type)
+        {
+            Track = track;
+            NextType = type;
+        }
+        public IPlayableId Track { get; }
+        public NextType NextType { get; }
+    }
+
     public class ConnectHandler  : IDisposable
     {
 
@@ -51,8 +74,41 @@ namespace SpotifyLib.SpotifyConnect
             this.Player.State.SpotifyDevice.OnDeviceChanged += SpotifyDevice_OnDeviceChanged;
             this.Player.State.SpotifyDevice.PauseChanged += SpotifyDeviceOnPauseChanged;
             this.Player.State.SpotifyDevice.ShuffleStateChanged += SpotifyDeviceOnShuffleStateChanged;
-            this.Player.State.SpotifyDevice.RepeatStateChanged += SpotifyDeviceOnRepeatStateChanged;
+            this.Player.State.SpotifyDevice.SetQueue += SpotifyDevice_SetQueue;
+            this.Player.State.SpotifyDevice.AddToQueue += SpotifyDevice_AddToQueue;
+            this.Player.State.SpotifyDevice.ContextUpdate += SpotifyDevice_ContextUpdate;
+            this.Player.State.SpotifyDevice.SkipNext += SpotifyDevice_SkipNext;
+            this.Player.State.SpotifyDevice.SkipPrevious += SpotifyDevice_SkipPrevious;
+
             _ = Singleton<SpotifySession>.Instance.Dealer().Connect();
+        }
+
+        private void SpotifyDevice_SkipPrevious(object sender, IPlayableId e)
+        {
+           OnSkipPrevious?.Invoke((this, sender as DeviceStateHandler), e);
+        }
+
+        private void SpotifyDevice_SkipNext(object sender, NextRequested e)
+        {
+            OnSkipNext?.Invoke((this, sender as DeviceStateHandler), e);
+
+        }
+
+        private void SpotifyDevice_ContextUpdate(object sender, List<ContextTrack> e)
+        {
+            OnContextUpdate?.Invoke((this, sender as DeviceStateHandler), e);
+
+        }
+
+        private void SpotifyDevice_AddToQueue(object sender, ContextTrack e)
+        {
+            OnAddQueue?.Invoke((this, sender as DeviceStateHandler), e);
+
+        }
+
+        private void SpotifyDevice_SetQueue(object sender, object e)
+        {
+            OnQueueSet?.Invoke((this, sender as DeviceStateHandler), e);
         }
 
         /// <summary>
@@ -65,12 +121,20 @@ namespace SpotifyLib.SpotifyConnect
         /// Will get invoked when the shuffle state of the device has changed.
         /// </summary>
         public virtual event SpotifyEventHandler<bool> ShuffleStateChanged;
-
         public virtual event SpotifyEventHandler<StreamingContext> PauseRequested;
         public virtual event SpotifyEventHandler<StreamingContext> ResumeRequested;
         public virtual event SpotifyEventHandler<DeviceChanged> OnDeviceChanged;
         public virtual event SpotifyEventHandler<PositionChanged> PositionChanged;
-        //public virtual event SpotifyEventHandler<StreamingContext> PauseRequested;
+        public virtual event SpotifyEventHandler<PlayingChangedRequest> OnPlayRequested;
+        public virtual event SpotifyEventHandler<NextRequested> OnSkipNext;
+        public virtual event SpotifyEventHandler<IPlayableId> OnSkipPrevious;
+        // public virtual event SpotifyEventHandler<PlayingChangedRequest> OnShuffleContextChanged;
+        // public virtual event SpotifyEventHandler<PlayingChangedRequest> OnRepeatingContextChanged;
+        //public virtual event SpotifyEventHandler<PlayingChangedRequest> OnRepeatingTrackChanged;
+        public virtual event SpotifyEventHandler<List<ContextTrack>> OnContextUpdate;
+        public virtual event SpotifyEventHandler<object> OnQueueSet;
+        public virtual event SpotifyEventHandler<ContextTrack> OnAddQueue;
+
 
         private void SpotifyDeviceOnRepeatStateChanged(object sender, 
             PlayerSetRepeatRequest.RepeatState state)
@@ -85,13 +149,16 @@ namespace SpotifyLib.SpotifyConnect
 
         private void SpotifyDeviceOnPauseChanged(object sender, bool e)
         {
+            var state = Player.State.SpotifyDevice.ActiveDeviceId == session.DeviceId
+                ? StreamingContext.Device
+                : StreamingContext.Connect;
             if (e)
             {
-                PauseRequested?.Invoke((this, sender as DeviceStateHandler), );
+                PauseRequested?.Invoke((this, sender as DeviceStateHandler), state);
             }
             else
             {
-                ResumeRequested?.Invoke((this, sender as DeviceStateHandler), );
+                ResumeRequested?.Invoke((this, sender as DeviceStateHandler), state);
             }
         }
 

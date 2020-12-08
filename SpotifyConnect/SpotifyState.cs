@@ -37,9 +37,7 @@ namespace SpotifyLib.SpotifyConnect
         public readonly SpotifySession Session;
         public AbsSpotifyContext Context;
         public PagesLoader Pages;
-        private TracksKeeper tracksKeeper;
-
-
+        internal TracksKeeper TracksKeeper;
         public SpotifyState(
             SpotifySession session,
             SpotifyPlayer player,
@@ -72,22 +70,22 @@ namespace SpotifyLib.SpotifyConnect
         }
         public PreviousPlayable PreviousPlayable()
         {
-            if (tracksKeeper == null) return Spotify.PreviousPlayable.MISSING_TRACKS;
-            return tracksKeeper.PreviousPlayable();
+            if (TracksKeeper == null) return Spotify.PreviousPlayable.MISSING_TRACKS;
+            return TracksKeeper.PreviousPlayable();
         }
         public async Task<string> LoadContext([NotNull] String uri)
         {
             ConnectState.PlayOrigin = new Connectstate.PlayOrigin();
             ConnectState.Options = new ContextPlayerOptions();
             var sessionId = SetContext(uri);
-            tracksKeeper.InitializeStart();
+            TracksKeeper.InitializeStart();
             SetPosition(0);
             await LoadTransforming();
             return sessionId;
         }
         public void SkipTo([NotNull] ContextTrack track)
         {
-            tracksKeeper.SkipTo(track);
+            TracksKeeper.SkipTo(track);
             SetPosition(0);
         }
         public async Task<string> LoadContextWithTracks([NotNull] string uri, [NotNull] List<ContextTrack> tracks) 
@@ -97,7 +95,7 @@ namespace SpotifyLib.SpotifyConnect
 
             var sessionId = SetContext(uri);
             Pages.PutFirstPage(tracks);
-            tracksKeeper.InitializeStart();
+            TracksKeeper.InitializeStart();
             SetPosition(0);
             await LoadTransforming();
             return sessionId;
@@ -111,7 +109,7 @@ namespace SpotifyLib.SpotifyConnect
             var sessionId = SetContext(ps.Context);
 
             var pb = cmd.Playback;
-            tracksKeeper.InitializeFrom(list => list.FindIndex(z=> z.Uid == ps.CurrentUid), pb.CurrentTrack, cmd.Queue);
+            TracksKeeper.InitializeFrom(list => list.FindIndex(z=> z.Uid == ps.CurrentUid), pb.CurrentTrack, cmd.Queue);
 
             ConnectState.PositionAsOfTimestamp = pb.PositionAsOfTimestamp;
             ConnectState.Timestamp = pb.IsPaused 
@@ -148,7 +146,7 @@ namespace SpotifyLib.SpotifyConnect
                 var track = metadata.track;
                 GuardAgainst.ArgumentBeingNull(ConnectState.Track);
 
-                if (track.HasDuration) tracksKeeper.UpdateTrackDuration(track.Duration);
+                if (track.HasDuration) TracksKeeper.UpdateTrackDuration(track.Duration);
 
                 var b = ConnectState.Track;
 
@@ -228,7 +226,7 @@ namespace SpotifyLib.SpotifyConnect
             this.ConnectState.ContextRestrictions = null;
             this.ConnectState.ContextMetadata.Clear();
             this.Pages = PagesLoader.From(Session, uri);
-            this.tracksKeeper = new TracksKeeper(this);
+            this.TracksKeeper = new TracksKeeper(this);
 
             this.SpotifyDevice.SetIsActive(true);
             return RenewSessionId();
@@ -252,7 +250,7 @@ namespace SpotifyLib.SpotifyConnect
             ProtoUtils.CopyOverMetadata(ctx, ConnectState);
 
             this.Pages = PagesLoader.From(Session, ctx);
-            this.tracksKeeper = new TracksKeeper(this);
+            this.TracksKeeper = new TracksKeeper(this);
 
             this.SpotifyDevice.SetIsActive(true);
 
@@ -292,7 +290,7 @@ namespace SpotifyLib.SpotifyConnect
 
         public void AddToQueue([NotNull] ContextTrack track)
         {
-            tracksKeeper.AddToQueue(track);
+            TracksKeeper.AddToQueue(track);
         }
 
         public void AddListener([NotNull] IDeviceStateHandlerListener listener)
@@ -303,12 +301,12 @@ namespace SpotifyLib.SpotifyConnect
         {
             if (Context == null) return;
 
-            if (tracksKeeper.IsPlayingFirst() && !IsRepeatingContext())
+            if (TracksKeeper.IsPlayingFirst() && !IsRepeatingContext())
                 Context.Restrictions.Disallow(RestrictionsManager.Action.SKIP_PREV, RestrictionsManager.REASON_NO_PREV_TRACK);
             else
                 Context.Restrictions.Allow(RestrictionsManager.Action.SKIP_PREV);
 
-            if (tracksKeeper.IsPlayingLast() && !IsRepeatingContext())
+            if (TracksKeeper.IsPlayingLast() && !IsRepeatingContext())
                 Context.Restrictions.Disallow(RestrictionsManager.Action.SKIP_NEXT, RestrictionsManager.REASON_NO_NEXT_TRACK);
             else
                 Context.Restrictions.Allow(RestrictionsManager.Action.SKIP_NEXT);
@@ -369,7 +367,7 @@ namespace SpotifyLib.SpotifyConnect
             ConnectState.Options.ShufflingContext =
                 value && Context.Restrictions.Can(RestrictionsManager.Action.SHUFFLE);
 
-            if (old != IsShufflingContext()) tracksKeeper.ToggleShuffle(IsShufflingContext());
+            if (old != IsShufflingContext()) TracksKeeper.ToggleShuffle(IsShufflingContext());
         }
         public void SetRepeatingContext(bool value)
         {
@@ -397,15 +395,15 @@ namespace SpotifyLib.SpotifyConnect
 
             if (trackUri != null)
             {
-                tracksKeeper.InitializeFrom(list => list.FindIndex(z=> z.Uri == trackUri), null, null);
+                TracksKeeper.InitializeFrom(list => list.FindIndex(z=> z.Uri == trackUri), null, null);
             }
             else if (trackUid != null)
             {
-                tracksKeeper.InitializeFrom(list => list.FindIndex(z => z.Uid == trackUid), null, null);
+                TracksKeeper.InitializeFrom(list => list.FindIndex(z => z.Uid == trackUid), null, null);
             }
             else if (trackIndex != null)
             {
-                tracksKeeper.InitializeFrom(list =>
+                TracksKeeper.InitializeFrom(list =>
                 {
                     if (trackIndex < list.Count) return (int) trackIndex;
                     return -1;
@@ -413,7 +411,7 @@ namespace SpotifyLib.SpotifyConnect
             }
             else
             {
-                tracksKeeper.InitializeStart();
+                TracksKeeper.InitializeStart();
             }
 
             var seekTo = PlayCommandHelper.GetSeekTo(obj);
@@ -425,7 +423,7 @@ namespace SpotifyLib.SpotifyConnect
 
         private async Task LoadTransforming()
         {
-            if (tracksKeeper == null) throw new Exception("Illegal State");
+            if (TracksKeeper == null) throw new Exception("Illegal State");
 
             string url = null;
             if (ConnectState.ContextMetadata.ContainsKey("transforming.url"))
@@ -444,7 +442,7 @@ namespace SpotifyLib.SpotifyConnect
 
             if (!willRequest) return;
             var obj = ProtoUtils.CraftContextStateCombo(ConnectState,
-                tracksKeeper.Tracks);
+                TracksKeeper.Tracks);
             try
             {
                 var body = await url
@@ -463,11 +461,11 @@ namespace SpotifyLib.SpotifyConnect
 
         public NextPlayable NextPlayable(bool autoplayEnabled)
         {
-            if (tracksKeeper == null) return Spotify.NextPlayable.MissingTracks;
+            if (TracksKeeper == null) return Spotify.NextPlayable.MissingTracks;
 
             try
             {
-                return tracksKeeper.NextPlayable(autoplayEnabled);
+                return TracksKeeper.NextPlayable(autoplayEnabled);
             }
             catch (Exception x)
             {
@@ -487,7 +485,8 @@ namespace SpotifyLib.SpotifyConnect
             }
 
             ProtoUtils.CopyOverMetadata(((JObject)obj["metadata"])!, ConnectState);
-            tracksKeeper.UpdateContext(ProtoUtils.JsonToContextPages(((JArray)obj["pages"])!));
+            TracksKeeper.UpdateContext(ProtoUtils.JsonToContextPages(((JArray)obj["pages"])!));
+
         }
         #endregion
 
@@ -503,7 +502,7 @@ namespace SpotifyLib.SpotifyConnect
             var trackCount = ConnectState.ContextMetadata.ContainsKey("track_count") 
                 ? ConnectState.ContextMetadata["track_count"] : null;
             if (trackCount != null) return int.Parse(trackCount);
-            return tracksKeeper?.Tracks.Count ?? 0;
+            return TracksKeeper?.Tracks.Count ?? 0;
         }
         public int GetPosition()
         {

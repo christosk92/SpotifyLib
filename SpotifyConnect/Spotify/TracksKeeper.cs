@@ -250,7 +250,8 @@ namespace SpotifyLib.SpotifyConnect.Spotify
 
         public void UpdateContext([NotNull] List<ContextPage> updatedPages)
         {
-            var updatedTracks = updatedPages.SelectMany(x => x.Tracks).ToList();
+            var updatedTracks = updatedPages
+                .SelectMany(x => x.Tracks).ToList();
             foreach (var track in updatedTracks)
             {
                 var index = Tracks.FindIndex(x => x.Uri == track.Uri);

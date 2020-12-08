@@ -13,8 +13,10 @@ using Google.Protobuf;
 using GuardAgainstLib;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
+using Spotify.Player.Proto;
 using SpotifyLib.Enums;
 using SpotifyLib.Helpers;
+using SpotifyLib.Ids;
 using SpotifyLib.Interfaces;
 using SpotifyLib.Models.Api.Requests;
 using SpotifyLib.Services;
@@ -124,10 +126,31 @@ namespace SpotifyLib.SpotifyConnect.Handlers
         {
             PositionChanged?.Invoke(this, pos);
         }
+        public void OnContextUpdate(List<ContextTrack> context)
+        {
+            ContextUpdate?.Invoke(this, context);
+        }
+        public void OnQueueSet(object trackUri)
+        {
+            SetQueue?.Invoke(this, trackUri);
+        }
+        public void OnQueueAdd(ContextTrack trc)
+        {
+            AddToQueue?.Invoke(this, trc);
+        }
+        public void OnSkipNext(NextRequested nxt)
+        {
+            SkipNext?.Invoke(this, nxt);
+        }
+        public void OnSkipPrevious(IPlayableId prv)
+        {
+            SkipPrevious?.Invoke(this, prv);
+        }
         public void OnCurrentlyPlayingChanged(PlayingChangedRequest trackUri)
         {
             CurrentlyPlayingChanged?.Invoke(this, trackUri);
         }
+
 
         public event EventHandler<double> PositionChanged;
         /// <summary>
@@ -139,6 +162,11 @@ namespace SpotifyLib.SpotifyConnect.Handlers
         public event EventHandler<string> OnDeviceChanged;
         public event EventHandler<PlayerSetRepeatRequest.RepeatState> RepeatStateChanged;
         public event EventHandler<bool> ShuffleStateChanged;
+        public event EventHandler<object> SetQueue;
+        public event EventHandler<ContextTrack> AddToQueue;
+        public event EventHandler<List<ContextTrack>> ContextUpdate;
+        public event EventHandler<NextRequested> SkipNext;
+        public event EventHandler<IPlayableId> SkipPrevious;
         #endregion
 
         #region Notifications

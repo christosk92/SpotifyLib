@@ -108,12 +108,16 @@ namespace SpotifyLib.SpotifyConnect
                     break;
                 case Endpoint.SeekTo:
                     await HandleSeek(int.Parse(data.Value));
+
                     break;
                 case Endpoint.SkipNext:
-                    _ =  HandleSkipNext(data.Obj, TransitionInfo.SkippedNext(State));
+                   var ja = await HandleSkipNext(data.Obj,
+                        TransitionInfo.SkippedNext(State));
+                   State.SpotifyDevice.OnSkipNext(ja);
                     break;
                 case Endpoint.SkipPrev:
-                    _ = HandleSkipPrev();
+                    _ = HandleSkipPrev(); 
+                    State.SpotifyDevice.OnSkipPrevious(State.GetCurrentPlayableOrThrow());
                     break;
                 case Endpoint.SetShufflingContext:
                     break;
@@ -125,11 +129,14 @@ namespace SpotifyLib.SpotifyConnect
                     var j = PlayCommandHelper.GetContext(data.Obj) as JObject;
                     State.UpdateContext(j);
                     _ = State.Updated();
+                    State.SpotifyDevice.OnContextUpdate(State.TracksKeeper.Tracks);
                     break;
                 case Endpoint.SetQueue:
                     break;
                 case Endpoint.AddToQueue:
-                    _ = HandleAddToQueue(data.Obj);
+                    var track = PlayCommandHelper.GetTrack(data.Obj);
+                    _ = HandleAddToQueue(track);
+                    State.SpotifyDevice.OnQueueAdd(track);
                     break;
                 case Endpoint.Transfer:
                     await HandleTransferState(TransferState.Parser.ParseFrom(data.Data));
@@ -164,7 +171,8 @@ namespace SpotifyLib.SpotifyConnect
                 await events.PlaybackResumed();
             }
         }
-        private async Task HandleSkipNext([CanBeNull] JObject obj, 
+        private async Task<NextRequested> HandleSkipNext(
+            [CanBeNull] JObject obj, 
             [NotNull] TransitionInfo trans)
         {
             ContextTrack track = null;
@@ -174,14 +182,18 @@ namespace SpotifyLib.SpotifyConnect
             {
                 State.SkipTo(track);
                 await LoadTrack(true, TransitionInfo.SkipTo(State));
-                return;
+                var uri = track.Uri;
+                return uri.StartsWith("spotify:episode")
+                    ? new NextRequested(new EpisodeId(uri), NextType.Command)
+                    : new NextRequested(new TrackId(uri), NextType.Command);
             }
 
             var next = State.NextPlayable(AutoPlay);
             if (next == Spotify.NextPlayable.Autoplay)
             {
                 await LoadAutoplay();
-                return;
+                return new NextRequested(State.GetCurrentPlayable(),
+                    NextType.Command);
             }
 
             if (next.IsOk())
@@ -189,13 +201,16 @@ namespace SpotifyLib.SpotifyConnect
                 trans.EndedWhen = State.GetPosition();
 
                 State.SetPosition(0);
-                await LoadTrack(next == Spotify.NextPlayable.OkPlay || next == Spotify.NextPlayable.OkRepeat, trans);
+                await LoadTrack(next == Spotify.NextPlayable.OkPlay 
+                                || next == Spotify.NextPlayable.OkRepeat, trans);
+                return new NextRequested(State.GetCurrentPlayable(), NextType.Command);
             }
             else
             {
                 Debug.WriteLine("Failed loading next song: " + next);
                // panicState(PlaybackMetrics.Reason.END_PLAY);
             }
+            return new NextRequested(null, NextType.Error);
         }
 
         private async Task HandleSkipPrev()
@@ -287,9 +302,8 @@ namespace SpotifyLib.SpotifyConnect
                 //panicState(null);
             }
         }
-        private async Task HandleAddToQueue([NotNull] JObject obj)
+        private async Task HandleAddToQueue(ContextTrack track)
         {
-            var track = PlayCommandHelper.GetTrack(obj);
             if (track == null) throw new ArgumentNullException(nameof(track));
 
             State.AddToQueue(track);
