@@ -8,7 +8,7 @@ using SpotifyLib.SpotifyConnect.Handlers;
 
 namespace SpotifyLib.SpotifyConnect
 {
-    public class ConnectHandler
+    public class ConnectHandler  : IDisposable
     {
 
         public delegate void SpotifyEventHandler<in T>(
@@ -72,6 +72,23 @@ namespace SpotifyLib.SpotifyConnect
         private void SpotifyDevice_CurrentlyPlayingChanged(object sender, SpotifyLib.Models.Api.Requests.PlayingChangedRequest e)
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            this.Player.State.SpotifyDevice.CurrentlyPlayingChanged
+                -= SpotifyDevice_CurrentlyPlayingChanged;
+            this.Player.State.SpotifyDevice.PositionChanged -= SpotifyDevice_PositionChanged;
+            this.Player.State.SpotifyDevice.OnDeviceChanged -= SpotifyDevice_OnDeviceChanged;
+            this.Player.State.SpotifyDevice.PauseChanged -= SpotifyDeviceOnPauseChanged;
+            this.Player.State.SpotifyDevice.ShuffleStateChanged -= SpotifyDeviceOnShuffleStateChanged;
+            this.Player.State.SpotifyDevice.RepeatStateChanged -= SpotifyDeviceOnRepeatStateChanged;
+            Dispose(true);
+        }
+
+        public virtual void Dispose(bool val)
+        {
+
         }
     }
 }
