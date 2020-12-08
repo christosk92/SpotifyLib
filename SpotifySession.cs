@@ -154,18 +154,7 @@ namespace SpotifyLib
         private readonly ConcurrentBag<IReconnectionListener> reconnectionListeners =
             new ConcurrentBag<IReconnectionListener>();
 
-        //These event handlers act as proxy events to communicate with the player from the viewmodel.
-        /// <summary>
-        /// If the parameter is set to true. The object has been paused
-        /// </summary>
-        public event EventHandler<ClusterUpdate> CurrentlyPlayingChanged;
-
         public static IMemoryCache Cache;
-
-        public void OnCurrentlyPlayingChanged(ClusterUpdate val)
-        {
-            CurrentlyPlayingChanged?.Invoke(this, val);
-        }
 
         private SpotifySession([NotNull] Inner inner,
             CancellationToken closedToken,
@@ -267,8 +256,7 @@ namespace SpotifyLib
                     volumeSteps);
 
             var connectHandler 
-                = new ConnectHandler(player);
-
+                = new ConnectHandler(this, player);
             return connectHandler;
         }
 

@@ -40,7 +40,6 @@ namespace SpotifyLib.SpotifyConnect
         public StreamingContext From { get; }
         public double SeekTo { get; }
     }
-
     public class NextRequested
     {
         internal NextRequested(
@@ -56,7 +55,6 @@ namespace SpotifyLib.SpotifyConnect
 
     public class ConnectHandler  : IDisposable
     {
-
         public delegate void SpotifyEventHandler<in T>(
             (ConnectHandler connectHandler, DeviceStateHandler deviceStateHandler) sender,
             T args);
@@ -191,7 +189,12 @@ namespace SpotifyLib.SpotifyConnect
             this.Player.State.SpotifyDevice.OnDeviceChanged -= SpotifyDevice_OnDeviceChanged;
             this.Player.State.SpotifyDevice.PauseChanged -= SpotifyDeviceOnPauseChanged;
             this.Player.State.SpotifyDevice.ShuffleStateChanged -= SpotifyDeviceOnShuffleStateChanged;
-            this.Player.State.SpotifyDevice.RepeatStateChanged -= SpotifyDeviceOnRepeatStateChanged;
+            this.Player.State.SpotifyDevice.RepeatStateChanged -= SpotifyDeviceOnRepeatStateChanged;         
+            this.Player.State.SpotifyDevice.SetQueue -= SpotifyDevice_SetQueue;
+            this.Player.State.SpotifyDevice.AddToQueue -= SpotifyDevice_AddToQueue;
+            this.Player.State.SpotifyDevice.ContextUpdate -= SpotifyDevice_ContextUpdate;
+            this.Player.State.SpotifyDevice.SkipNext -= SpotifyDevice_SkipNext;
+            this.Player.State.SpotifyDevice.SkipPrevious -= SpotifyDevice_SkipPrevious;
             Dispose(true);
         }
 
