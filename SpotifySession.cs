@@ -260,10 +260,12 @@ namespace SpotifyLib
             int volumeSteps)
         {
             var player = 
-                new SpotifyPlayer(this, 
+                new SpotifyPlayer(
+                    this, 
                     device, 
                     initialVolume,
                     volumeSteps);
+
             var connectHandler 
                 = new ConnectHandler(player);
 
