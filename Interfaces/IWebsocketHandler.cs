@@ -11,6 +11,7 @@ namespace SpotifyLib.Interfaces
         public abstract event EventHandler<string> MessageReceived;
         public abstract event EventHandler<WebsocketclosedEventArgs> SocketDisconnected;
         public abstract event EventHandler<string> SocketConnected;
+        public abstract event EventHandler<string> SocketIssueOccured;
         public abstract Task SendMessageAsync(string jsonContent);
         public abstract Task ConnectSocketAsync(Uri connectionUri);
         public abstract Task KeepAlive();

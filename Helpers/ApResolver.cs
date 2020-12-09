@@ -15,8 +15,8 @@ namespace SpotifyLib.Helpers
             //https://apresolve.spotify.com/?type=dealer
             using var client = new HttpClient();
             var dealers = await client.GetStringAsync("https://apresolve.spotify.com/?type=dealer");
-            var x = JArray.Parse(dealers)["dealer"];
-            _resolvedDealer = "https://" + x.First.Values().First();
+            var x = JObject.Parse(dealers)["dealer"];
+            _resolvedDealer = "https://" + x.First;
             return _resolvedDealer;
         }
 
@@ -27,8 +27,8 @@ namespace SpotifyLib.Helpers
             //https://apresolve.spotify.com/?type=spclient
             using var client = new HttpClient();
             var spclients = await client.GetStringAsync("https://apresolve.spotify.com/?type=spclient");
-            var x = JArray.Parse(spclients)["spclient"];
-            _resolvedSpClient = "https://" + x.First.Values().First();
+            var x = JObject.Parse(spclients)["spclient"];
+            _resolvedSpClient = "https://" + x.First;
             return _resolvedSpClient;
         }
     }

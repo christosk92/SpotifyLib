@@ -248,6 +248,7 @@ namespace SpotifyLib
             uint initialVolume,
             int volumeSteps)
         {
+            WaitAuthLock();
             var player = 
                 new SpotifyPlayer(
                     this, 
@@ -575,7 +576,7 @@ namespace SpotifyLib
         public DealerClient Dealer()
         {
             WaitAuthLock();
-            GuardAgainst.ArgumentBeingNull(mercuryClient, exceptionMessage: "Session isn't authenticated");
+            GuardAgainst.ArgumentBeingNull(dealer, exceptionMessage: "Session isn't authenticated");
             return dealer;
         }
 

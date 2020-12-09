@@ -78,7 +78,7 @@ namespace SpotifyLib.SpotifyConnect
             this.Player.State.SpotifyDevice.SkipNext += SpotifyDevice_SkipNext;
             this.Player.State.SpotifyDevice.SkipPrevious += SpotifyDevice_SkipPrevious;
 
-            _ = Singleton<SpotifySession>.Instance.Dealer().Connect();
+            _ = session.Dealer().Connect();
         }
 
         private void SpotifyDevice_SkipPrevious(object sender, IPlayableId e)
@@ -126,9 +126,6 @@ namespace SpotifyLib.SpotifyConnect
         public virtual event SpotifyEventHandler<PlayingChangedRequest> OnPlayRequested;
         public virtual event SpotifyEventHandler<NextRequested> OnSkipNext;
         public virtual event SpotifyEventHandler<IPlayableId> OnSkipPrevious;
-        // public virtual event SpotifyEventHandler<PlayingChangedRequest> OnShuffleContextChanged;
-        // public virtual event SpotifyEventHandler<PlayingChangedRequest> OnRepeatingContextChanged;
-        //public virtual event SpotifyEventHandler<PlayingChangedRequest> OnRepeatingTrackChanged;
         public virtual event SpotifyEventHandler<List<ContextTrack>> OnContextUpdate;
         public virtual event SpotifyEventHandler<object> OnQueueSet;
         public virtual event SpotifyEventHandler<ContextTrack> OnAddQueue;
