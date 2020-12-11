@@ -15,7 +15,6 @@ namespace SpotifyLib.Api
         [Get("/v1/views/recently-played")]
         Task<RecentlyPlayedResponse> GetRecentlyPlayed(RecentlyPlayedRequest request);
 
-
         [Get("/v1/views/{id}")]
         Task<HomeResponseTrimmed> GetTagLineDetailed(string id, [AliasAs("locale")] string locale);
 
@@ -40,5 +39,7 @@ namespace SpotifyLib.Api
         [Get("/v1/views/{id}")]
         Task<HomeResponse> GetGenericView(string id, HomeRequest request);
 
+        [Get("/v1/views/{id}")]
+        Task<RecentlyPlayedResponse> GetGenericView2(string id, HomeRequest request);
     }
 }

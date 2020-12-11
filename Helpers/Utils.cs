@@ -7,7 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace SpotifyLib.Helpers
 {
-    internal static class Utils
+    public static class Utils
     {
 
         private static readonly char[] hexArray = "0123456789ABCDEF".ToCharArray();
@@ -36,9 +36,9 @@ namespace SpotifyLib.Helpers
             if (array[0] == 0) array = Arrays.CopyOfRange(array, 1, array.Length);
             return array;
         }
-        internal static String bytesToHex(byte[] bytes) => bytesToHex(bytes, 0, bytes.Length, true, -1);
+        public static String bytesToHex(byte[] bytes) => bytesToHex(bytes, 0, bytes.Length, true, -1);
 
-        internal static String bytesToHex(byte[] bytes, int offset, int length, bool trim, int minLength)
+        public static String bytesToHex(byte[] bytes, int offset, int length, bool trim, int minLength)
         {
             if (bytes == null) return "";
 

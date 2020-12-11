@@ -61,22 +61,24 @@ namespace SpotifyLib.SpotifyConnect
 
         public SpotifyPlayer Player;
         private readonly SpotifySession session;
+
+        public ConnectHandler(){}
         public ConnectHandler(SpotifySession session, 
             SpotifyPlayer player)
         {
             Player = player;
             this.session = session;
-            this.Player.State.SpotifyDevice.CurrentlyPlayingChanged 
+            Player.State.SpotifyDevice.CurrentlyPlayingChanged 
                 += SpotifyDevice_CurrentlyPlayingChanged;
-            this.Player.State.SpotifyDevice.PositionChanged += SpotifyDevice_PositionChanged;
-            this.Player.State.SpotifyDevice.OnDeviceChanged += SpotifyDevice_OnDeviceChanged;
-            this.Player.State.SpotifyDevice.PauseChanged += SpotifyDeviceOnPauseChanged;
-            this.Player.State.SpotifyDevice.ShuffleStateChanged += SpotifyDeviceOnShuffleStateChanged;
-            this.Player.State.SpotifyDevice.SetQueue += SpotifyDevice_SetQueue;
-            this.Player.State.SpotifyDevice.AddToQueue += SpotifyDevice_AddToQueue;
-            this.Player.State.SpotifyDevice.ContextUpdate += SpotifyDevice_ContextUpdate;
-            this.Player.State.SpotifyDevice.SkipNext += SpotifyDevice_SkipNext;
-            this.Player.State.SpotifyDevice.SkipPrevious += SpotifyDevice_SkipPrevious;
+            Player.State.SpotifyDevice.PositionChanged += SpotifyDevice_PositionChanged;
+            Player.State.SpotifyDevice.OnDeviceChanged += SpotifyDevice_OnDeviceChanged;
+            Player.State.SpotifyDevice.PauseChanged += SpotifyDeviceOnPauseChanged;
+            Player.State.SpotifyDevice.ShuffleStateChanged += SpotifyDeviceOnShuffleStateChanged;
+            Player.State.SpotifyDevice.SetQueue += SpotifyDevice_SetQueue;
+            Player.State.SpotifyDevice.AddToQueue += SpotifyDevice_AddToQueue;
+            Player.State.SpotifyDevice.ContextUpdate += SpotifyDevice_ContextUpdate;
+            Player.State.SpotifyDevice.SkipNext += SpotifyDevice_SkipNext;
+            Player.State.SpotifyDevice.SkipPrevious += SpotifyDevice_SkipPrevious;
 
             _ = session.Dealer().Connect();
         }
@@ -123,7 +125,9 @@ namespace SpotifyLib.SpotifyConnect
         public virtual event SpotifyEventHandler<StreamingContext> ResumeRequested;
         public virtual event SpotifyEventHandler<DeviceChanged> OnDeviceChanged;
         public virtual event SpotifyEventHandler<PositionChanged> PositionChanged;
-        public virtual event SpotifyEventHandler<PlayingChangedRequest> OnPlayRequested;
+
+        public virtual event SpotifyEventHandler<PlayingChangedRequest> CurrentlyPlayingChanged;
+
         public virtual event SpotifyEventHandler<NextRequested> OnSkipNext;
         public virtual event SpotifyEventHandler<IPlayableId> OnSkipPrevious;
         public virtual event SpotifyEventHandler<List<ContextTrack>> OnContextUpdate;
@@ -173,25 +177,25 @@ namespace SpotifyLib.SpotifyConnect
         }
 
         private void SpotifyDevice_CurrentlyPlayingChanged(object sender, 
-            SpotifyLib.Models.Api.Requests.PlayingChangedRequest e)
+            PlayingChangedRequest e)
         {
-            throw new NotImplementedException();
+            CurrentlyPlayingChanged?.Invoke((this, sender as DeviceStateHandler), e);
         }
 
         public void Dispose()
         {
-            this.Player.State.SpotifyDevice.CurrentlyPlayingChanged
+            Player.State.SpotifyDevice.CurrentlyPlayingChanged
                 -= SpotifyDevice_CurrentlyPlayingChanged;
-            this.Player.State.SpotifyDevice.PositionChanged -= SpotifyDevice_PositionChanged;
-            this.Player.State.SpotifyDevice.OnDeviceChanged -= SpotifyDevice_OnDeviceChanged;
-            this.Player.State.SpotifyDevice.PauseChanged -= SpotifyDeviceOnPauseChanged;
-            this.Player.State.SpotifyDevice.ShuffleStateChanged -= SpotifyDeviceOnShuffleStateChanged;
-            this.Player.State.SpotifyDevice.RepeatStateChanged -= SpotifyDeviceOnRepeatStateChanged;         
-            this.Player.State.SpotifyDevice.SetQueue -= SpotifyDevice_SetQueue;
-            this.Player.State.SpotifyDevice.AddToQueue -= SpotifyDevice_AddToQueue;
-            this.Player.State.SpotifyDevice.ContextUpdate -= SpotifyDevice_ContextUpdate;
-            this.Player.State.SpotifyDevice.SkipNext -= SpotifyDevice_SkipNext;
-            this.Player.State.SpotifyDevice.SkipPrevious -= SpotifyDevice_SkipPrevious;
+            Player.State.SpotifyDevice.PositionChanged -= SpotifyDevice_PositionChanged;
+            Player.State.SpotifyDevice.OnDeviceChanged -= SpotifyDevice_OnDeviceChanged;
+            Player.State.SpotifyDevice.PauseChanged -= SpotifyDeviceOnPauseChanged;
+            Player.State.SpotifyDevice.ShuffleStateChanged -= SpotifyDeviceOnShuffleStateChanged;
+            Player.State.SpotifyDevice.RepeatStateChanged -= SpotifyDeviceOnRepeatStateChanged;         
+            Player.State.SpotifyDevice.SetQueue -= SpotifyDevice_SetQueue;
+            Player.State.SpotifyDevice.AddToQueue -= SpotifyDevice_AddToQueue;
+            Player.State.SpotifyDevice.ContextUpdate -= SpotifyDevice_ContextUpdate;
+            Player.State.SpotifyDevice.SkipNext -= SpotifyDevice_SkipNext;
+            Player.State.SpotifyDevice.SkipPrevious -= SpotifyDevice_SkipPrevious;
             Dispose(true);
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using SpotifyLib.Helpers;
 
 namespace SpotifyLib.Models.Mercury
 {
@@ -18,7 +19,8 @@ namespace SpotifyLib.Models.Mercury
     public class MercuryAlbum : GenericSpotifyItem
     {
         private List<Disc> _discs;
-
+        [JsonProperty("related")]
+        public Related Related { get; set; }
         [JsonIgnore]
         public string Description { get; set; }
         [JsonProperty("name")]
@@ -39,17 +41,27 @@ namespace SpotifyLib.Models.Mercury
             get => _discs;
             set { _discs = value; }
         }
-
+        [JsonProperty("artists")]
+        public List<MercuryAlbumArtist> Artists { get; set; }
         public long Month { get; set; }
 
         [JsonProperty("day")]
         public long Day { get; set; }
 
         [JsonProperty("type")]
-        public string Type { get; set; }
+        public string Type
+        {
+            get => _type.FirstCharToUpper();
+            set => _type = value;
+        }
 
+        private string _type;
         [JsonProperty("label")]
         public string Label { get; set; }
+        [JsonProperty("copyrights")]
+        public List<string> Copyrights { get; set; }
+        [JsonIgnore]
+        public string DerivedFrom { get; set; }
     }
 
     public class MercuryAlbumArtist

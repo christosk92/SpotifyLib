@@ -43,7 +43,7 @@ namespace SpotifyLib.Models.Api.Response
         [J("uri")] public string Uri { get; set; }
         [J("name")] public string Name { get; set; }
         [J("playcount")] public string Playcount { get; set; }
-        [J("discNumber")] public long DiscNumber { get; set; }
+        [J("discNumber")] public int DiscNumber { get; set; }
         [J("trackNumber")] public long TrackNumber { get; set; }
         [J("contentRating")] public ContentRating ContentRating { get; set; }
         [J("relinkingInformation")] public RelinkingInformation RelinkingInformation { get; set; }
@@ -75,7 +75,7 @@ namespace SpotifyLib.Models.Api.Response
 
     public partial class Duration
     {
-        [J("totalMilliseconds")] public long TotalMilliseconds { get; set; }
+        [J("totalMilliseconds")] public int TotalMilliseconds { get; set; }
     }
 
     public partial class RelinkingInformation

@@ -676,7 +676,7 @@ namespace SpotifyLib
             {
                 var a = conn.Result.NetworkStream;
                 var payloadLengthAsByte = BitConverter.GetBytes((short)payload.Length).Reverse().ToArray();
-                var yetAnotherBuffer = new MemoryStream(3 + payload.Length);
+                using var yetAnotherBuffer = new MemoryStream(3 + payload.Length);
                 yetAnotherBuffer.WriteByte((byte)cmd);
                 yetAnotherBuffer.Write(payloadLengthAsByte, 0, payloadLengthAsByte.Length);
                 yetAnotherBuffer.Write(payload, 0, payload.Length);
@@ -707,16 +707,16 @@ namespace SpotifyLib
                 recvCipher.decrypt(headerBytes);
 
                 var cmd = headerBytes[0];
-                short payloadLength = (short)((headerBytes[1] << 8) | (headerBytes[2] & 0xFF));
+                var payloadLength = (short)((headerBytes[1] << 8) | (headerBytes[2] & 0xFF));
 
                 var payloadBytes = new byte[payloadLength];
                 a.ReadComplete(payloadBytes, 0, payloadBytes.Length);
                 recvCipher.decrypt(payloadBytes);
 
-                byte[] mac = new byte[4];
+                var mac = new byte[4];
                 a.ReadComplete(mac, 0, mac.Length);
 
-                byte[] expectedMac = new byte[4];
+                var expectedMac = new byte[4];
                 recvCipher.finish(expectedMac);
                 return new MercuryPacket((MercuryPacket.Type)cmd, payloadBytes);
             }
@@ -827,7 +827,7 @@ namespace SpotifyLib
                 {
                     MercuryPacket packet;
                     MercuryPacket.Type cmd;
-                    bool tokenCanceled = false;
+                    var tokenCanceled = false;
                     try
                     {
                         try

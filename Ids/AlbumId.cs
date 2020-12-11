@@ -11,6 +11,8 @@ namespace SpotifyLib.Ids
 {
     public class AlbumId : ISpotifyId
     {
+        private readonly string _locale;
+
         public static AlbumId FromHex(string hex)
         {
             var k = (Utils.hexToBytes(hex)).ToBase62(true);
@@ -18,8 +20,9 @@ namespace SpotifyLib.Ids
             return new AlbumId(j);
         }
 
-        public AlbumId(string uri)
+        public AlbumId(string uri, string locale = "en")
         {
+            _locale = locale;
             Type = SpotifyType.Album;
             var regexMatch = Regex.Match(uri, "spotify:album:(.{22})");
             if (regexMatch.Success)
@@ -46,7 +49,7 @@ namespace SpotifyLib.Ids
             return hex;
         }
 
-        public string ToMercuryUri() => $"hm://album/v1/album-app/album/{Uri}/desktop?country=jp&catalogue=premium&locale=ja";
+        public string ToMercuryUri() => $"hm://album/v1/album-app/album/{Uri}/desktop?country=jp&catalogue=premium&locale={_locale}";
 
         public SpotifyType Type { get; }
 

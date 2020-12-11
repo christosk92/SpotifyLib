@@ -4,6 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 
 namespace SpotifyLib.Models.Mercury
@@ -264,7 +267,7 @@ namespace SpotifyLib.Models.Mercury
         public List<Playlist> Playlists { get; set; }
     }
 
-    public partial class Playlist : GenericSpotifyItem
+    public partial class Playlist : DiscographyItem
     {
         [JsonProperty("uri")]
         public string Uri { get; set; }
@@ -331,7 +334,12 @@ namespace SpotifyLib.Models.Mercury
         public long? TotalCount { get; set; }
     }
 
-    public partial class AlbumsRelease : GenericSpotifyItem
+    public class DiscographyItem : GenericSpotifyItem
+    {
+        [JsonIgnore]
+        public string DerivedFrom { get; set; }
+    }
+    public partial class AlbumsRelease : DiscographyItem
     {
         private List<Disc> _discs;
         private List<DiscTrack> _tracks;
@@ -348,23 +356,67 @@ namespace SpotifyLib.Models.Mercury
         [JsonProperty("track_count")]
         public long? TrackCount { get; set; }
 
-        [JsonProperty("discs")]
+        public delegate void InvokeDelegate(AlbumsRelease sender,
+            List<DiscTrack> obj);
+        public static InvokeDelegate InvokeMethod;
+
+        [JsonProperty("discs",
+            DefaultValueHandling = DefaultValueHandling.Include)]
         public List<Disc> Discs
         {
             get => _discs;
             set
             {
                 _discs = value;
-                //value.ForEach(k => k.Tracks.ForEach(t => t.ContextUri = Uri));
-               // Tracks = value.SelectMany(z => z.Tracks).ToList();
+                Tracks = value.SelectMany(z => z.Tracks).ToList();
+            }
+        }
+
+        public async Task FetchTracksIfNull()
+        {
+            if (this.Tracks == null)
+            {
+                //fetch
+                var cacheKey = $"album-tracks-{Id}";
+                if (!SpotifySession.Cache.TryGetValue(cacheKey, out List<DiscTrack> fethed))
+                {
+                    var albumTracks =
+                        await SpotifySession.Current.Api().PathFinder.QueryAlbumTracks(Id);
+                    fethed =
+                        albumTracks.Data.Album.Tracks.Items.Select((z, i) => new DiscTrack
+                        {
+                            Artists = z.Track.Artists.Items.Select(k => new TrackArtist
+                            {
+                                Name = k.Profile.Name,
+                                Uri = k.Uri
+                            }).ToList(),
+                            ContextIndex = i + 1,
+                            DiscNumber = z.Track.DiscNumber,
+                            Playcount = int.Parse(z.Track.Playcount),
+                            Duration = z.Track.Duration.TotalMilliseconds,
+                            Uri = z.Track.Uri,
+                            Name = z.Track.Name,
+                        }).ToList();
+                    SpotifySession.Cache.Set(cacheKey, fethed);
+                }
+
+                Tracks = fethed;
+                //InvokeMethod(this, _tracks);
             }
         }
 
         [JsonIgnore]
         public List<DiscTrack> Tracks
         {
-            get => _tracks;
-            set => _tracks = value;
+            get
+            {
+                return _tracks;
+            }
+            set
+            {
+                _tracks = value;
+                OnPropertyChanged(nameof(Tracks));
+            }
         }
 
         [JsonProperty("month")]
@@ -388,6 +440,7 @@ namespace SpotifyLib.Models.Mercury
 
     public partial class DiscTrack : GenericSpotifyItem
     {
+        private List<TrackArtist> _artists;
         private int _numb;
         [JsonIgnore]
         public int DiscNumber { get; set; }
@@ -398,6 +451,8 @@ namespace SpotifyLib.Models.Mercury
 
         [JsonProperty("name")]
         public string Name { get; set; }
+        [JsonIgnore]
+        public string ArtistsString { get; set; }
 
         [JsonProperty("popularity")]
         public int Popularity { get; set; }
@@ -423,7 +478,15 @@ namespace SpotifyLib.Models.Mercury
         public bool Playable { get; set; }
 
         [JsonProperty("artists")]
-        public List<TrackArtist> Artists { get; set; }
+        public List<TrackArtist> Artists
+        {
+            get => _artists;
+            set
+            {
+                _artists = value;
+                ArtistsString = string.Join(", ", value.Select(z => z.Name));
+            }
+        }
     }
 
     public partial class TrackArtist

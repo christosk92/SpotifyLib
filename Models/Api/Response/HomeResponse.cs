@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 
@@ -192,7 +193,7 @@ namespace SpotifyLib.Models.Api.Response
 		[JsonProperty("artists")]
 		public Artist[] Artists { get; set; }
 
-		[JsonProperty("release_date")]
+        [JsonProperty("release_date")]
 		public string? ReleaseDate { get; set; }
 
 		[JsonProperty("release_date_precision")]
