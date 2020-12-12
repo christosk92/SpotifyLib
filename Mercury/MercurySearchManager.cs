@@ -1,19 +1,77 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Web;
 using GuardAgainstLib;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SpotifyLib.Helpers;
 
 namespace SpotifyLib.Mercury
 {
-    public enum SearchType
+    public class SearchBase
     {
-        Quick,
-        Overview,
-        Full
+    }
+
+    public class QuickSearch : SearchBase
+    {
+        [JsonProperty("sections")]
+        public List<Section> Sections { get; set; }
+
+        [JsonProperty("requestId")]
+        public Guid RequestId { get; set; }
+
+        public partial class Section
+        {
+            [JsonProperty("type")]
+            public string Type { get; set; }
+
+            [JsonProperty("items")]
+            public List<SearchItem> Items { get; set; }
+
+            public partial class SearchItem
+            {
+                [JsonProperty("name")]
+                public string Name { get; set; }
+
+                [JsonProperty("uri")]
+                public string Uri { get; set; }
+
+                [JsonProperty("image")]
+                public Uri Image { get; set; }
+
+                [JsonProperty("album", NullValueHandling = NullValueHandling.Ignore)]
+                public SearchAlbum Album { get; set; }
+
+                [JsonProperty("artists", NullValueHandling = NullValueHandling.Ignore)]
+                public List<SearchAlbum> Artists { get; set; }
+
+                [JsonProperty("fromLyrics", NullValueHandling = NullValueHandling.Ignore)]
+                public bool? FromLyrics { get; set; }
+
+                [JsonProperty("explicit", NullValueHandling = NullValueHandling.Ignore)]
+                public bool? Explicit { get; set; }
+
+                [JsonProperty("followers", NullValueHandling = NullValueHandling.Ignore)]
+                public long? Followers { get; set; }
+
+                public partial class SearchAlbum
+                {
+                    [JsonProperty("name")]
+                    public string Name { get; set; }
+
+                    [JsonProperty("uri")]
+                    public string Uri { get; set; }
+                }
+            }
+        }
+    }
+    public class FullSearch : SearchBase
+    {
+
     }
     public readonly struct MercurySearchManager
     {
@@ -26,19 +84,28 @@ namespace SpotifyLib.Mercury
             this._session = session;
         }
 
-        public JObject Request(
-            [NotNull] SearchRequest req)
+        public T Request<T>(
+            [NotNull] SearchRequest<T> req,
+            bool outputString) where T : SearchBase
         {
             if (req.Username.IsEmpty()) req.Username = _session.Username;
             if (req.Country.IsEmpty()) req.Country = _session.CountryCode;
             if (req.Locale.IsEmpty()) req.Locale = _session.Locale;
 
-            var mercuryResponse = _session.Mercury().SendSync(new JsonMercuryRequest<string>(RawMercuryRequest.Get(req.BuildUrl())));
-            return JObject.Parse(mercuryResponse);
+            if (!outputString)
+            {
+                return _session.Mercury().SendSync(new JsonMercuryRequest<T>(RawMercuryRequest.Get(req.BuildUrl())));
+            }
+            else
+            {
+                var test = _session.Mercury().SendSync(new JsonMercuryRequest<string>(RawMercuryRequest.Get(req.BuildUrl())));
+                Debug.WriteLine(test);
+                return default(T);
+            }
         }
     }
 
-    public struct SearchRequest
+    public struct SearchRequest<T> where T : SearchBase
     {
         private static int Sequence;
         private readonly string _query;
@@ -48,9 +115,7 @@ namespace SpotifyLib.Mercury
         public string Country { get; set; }
         public string Locale { get; set; }
         public string Username { get; set; }
-        public SearchType SearchType { get; }
         public SearchRequest(
-            SearchType searchType,
             [NotNull] string query,
             string imageSize,
             string catalogue,
@@ -61,7 +126,6 @@ namespace SpotifyLib.Mercury
         {
             this._query = query.Trim();
             Limit = limit;
-            SearchType = searchType;
             ImageSize = imageSize;
             Catalogue = catalogue;
             Country = country;
@@ -72,9 +136,9 @@ namespace SpotifyLib.Mercury
 
         public string BuildUrl()
         {
-            switch (SearchType)
+            switch (typeof(T))
             {
-                case SearchType.Overview:
+                case { } intType when intType == typeof(FullSearch):
                     var url =
                         Flurl.Url.Combine(MercurySearchManager.MainSearch,
                             HttpUtility.UrlEncode(_query, Encoding.UTF8));
@@ -86,7 +150,7 @@ namespace SpotifyLib.Mercury
                     url += "&locale=" + HttpUtility.UrlEncode(Locale, Encoding.UTF8);
                     url += "&username=" + HttpUtility.UrlEncode(Username, Encoding.UTF8);
                     return url;
-                case SearchType.Quick:
+                case { } intType when intType == typeof(QuickSearch):
                     var quickUrl =
                         Flurl.Url.Combine(MercurySearchManager.QuickSearch,
                             HttpUtility.UrlEncode(_query, Encoding.UTF8));
