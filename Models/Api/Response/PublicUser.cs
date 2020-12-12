@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using SpotifyLib.Models.Mercury;
 
 namespace SpotifyLib.Models.Api.Response
 {
     public class PublicUser
     {
+        [JsonProperty("display_name")]
         public string DisplayName { get; set; } = default!;
 
         public Dictionary<string, string> ExternalUrls { get; set; } = default!;

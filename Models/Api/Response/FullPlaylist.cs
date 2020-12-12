@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace SpotifyLib.Models.Api.Response
 {
@@ -12,6 +13,7 @@ namespace SpotifyLib.Models.Api.Response
         public string? Href { get; set; } = default!;
         public List<Image>? Images { get; set; } = default!;
         public string? Name { get; set; } = default!;
+        [JsonProperty("owner")]
         public PublicUser? Owner { get; set; } = default!;
         public bool? Public { get; set; }
         public string? SnapshotId { get; set; } = default!;

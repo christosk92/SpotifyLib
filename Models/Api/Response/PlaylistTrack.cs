@@ -1,5 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
+using SpotifyLib.Enums;
 using SpotifyLib.Helpers;
 
 namespace SpotifyLib.Models.Api.Response
@@ -52,5 +53,8 @@ namespace SpotifyLib.Models.Api.Response
                 _track = value;
             }
         }
+
+        [JsonIgnore]
+        public PlaylistType DerivedFromList { get; set; }
     }
 }

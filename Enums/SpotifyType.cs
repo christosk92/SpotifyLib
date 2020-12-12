@@ -13,4 +13,10 @@
         Local,
 
     }
+    public enum PlaylistType
+    {
+        UserPlaylist,
+        ChartedList,
+        DailyMixList
+    }
 }
