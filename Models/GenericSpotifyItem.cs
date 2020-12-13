@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using SpotifyLib.Enums;
 
 namespace SpotifyLib.Models
 {
@@ -14,6 +15,11 @@ namespace SpotifyLib.Models
         private bool _isFocus;
         private bool _isCurrentlyPlaying;
 
+        public GenericSpotifyItem(SpotifyType? typeOverride = null)
+        {
+            Type = typeOverride ?? SpotifyType.Track;
+        }
+
         [JsonProperty("uri", NullValueHandling = NullValueHandling.Ignore)]
         public string Uri
         {
@@ -21,9 +27,34 @@ namespace SpotifyLib.Models
             set
             {
                 _uri = value;
+                if (Type == SpotifyType.Track)
+                {
+                    switch (value.Split(':')[1])
+                    {
+                        case "track":
+                            Type = SpotifyType.Track;
+                            break;
+                        case "artist":
+                            Type = SpotifyType.Artist;
+                            break;
+                        case "album":
+                            Type = SpotifyType.Album;
+                            break;
+                        case "show":
+                            Type = SpotifyType.Show;
+                            break;
+                        case "episode":
+                            Type = SpotifyType.Episode;
+                            break;
+                    }
+                }
+
                 Id ??= value.Split(':').LastOrDefault();
             }
         }
+
+        [JsonIgnore]
+        public SpotifyType Type { get; set; }
 
         [JsonProperty("Id", NullValueHandling = NullValueHandling.Ignore)]
         public string Id

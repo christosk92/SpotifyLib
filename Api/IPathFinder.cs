@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Refit;
@@ -62,6 +63,9 @@ namespace SpotifyLib.Api
     [BaseUrl("https://api-partner.spotify.com")]
     public interface IPathFinder
     {
+        [Get(
+            "/pathfinder/v1/query?operationName=queryArtistOverview&variables=%7B%22uri%22%3A%22spotify:artist:{id}%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%2253f2fcff0a0f47530d71f576113ed9db94fc3ccd1e8c7420c0852b828cadd2e0%22%7D%7D")]
+        Task<ArtistQuickHeader> GetArtistHeaderOnly(string id, CancellationToken ct);
         [Get(
             "/pathfinder/v1/query?operationName=queryArtistOverview&variables=%7B%22uri%22%3A%22spotify:artist:{id}%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%2253f2fcff0a0f47530d71f576113ed9db94fc3ccd1e8c7420c0852b828cadd2e0%22%7D%7D")]
         Task<ArtistQuickHeader> GetArtistHeaderOnly(string id);

@@ -4,32 +4,25 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using SpotifyLib.Enums;
+using SpotifyLib.Helpers;
+using SpotifyLib.Ids;
+using SpotifyLib.Mercury;
 using J = Newtonsoft.Json.JsonPropertyAttribute;
 using N = Newtonsoft.Json.NullValueHandling;
 namespace SpotifyLib.Models.Mercury
 {
-    public enum BaseType 
-    {
-        Track,
-        Artist,
-        Album,
-        Episode,
-        Show,
-        Profile,
-        Playlist,
-        Station,
-        Recommendation,
-        Unknown,
-        Genre
-    }
+
     public class GenericHit : GenericSpotifyItem
     {
-        public BaseType Type2 { get; set; }
-    }
+        public GenericHit(SpotifyType? typeOverride = null) : base(typeOverride)
+        {
 
-    public partial class MercurySearchResponse
+        }
+    }
+    public class MercurySearchResponse : SearchBase
     {
         [J("results")] public Results Results { get; set; }
         [J("requestId")] public string RequestId { get; set; }
@@ -86,79 +79,8 @@ namespace SpotifyLib.Models.Mercury
 
     public class TopHit : GenericHit
     {
-        public TopHit() : base()
-        {
-
-        }
-        public static CancellationTokenSource cts;
-        [JsonIgnore]
-        public static string PreviousUrl;
-        [JsonIgnore]
-        public static string PreviousHeaderUrl;
         [J("name")] public string Name { get; set; }
         private bool IsUser => string.IsNullOrEmpty(Author);
-
-        private string _uri;
-        [J("uri")]
-        public new string Uri
-        {
-            get => _uri;
-            set
-            {
-                base.Id = value.Split(':').Last();
-                _uri = value;
-                if (value.StartsWith("spotify:artist"))
-                {
-                    FetchHeaderUrl = Task.Run(async () =>
-                    {
-                        if (PreviousUrl == value)
-                            return PreviousHeaderUrl;
-                        var r = await SpotifySession.Current.Api().Artist.GetArtist(value.Split(':').Last());
-                        var x = r.Data.Artist?.Visuals?.HeaderImage?.Sources?.FirstOrDefault()?.Url;
-                        PreviousHeaderUrl = x;
-                        PreviousUrl = value;
-                        return x;
-                    }, cts.Token);
-                }
-
-                if (value.Contains("playlist"))
-                {
-                    var regexMatch = Regex.Match(value, "spotify:user:(.*):playlist:(.{22})");
-                    if (regexMatch.Success)
-                    {
-                        Type2 = BaseType.Playlist;
-                        return;
-                    }
-                    else
-                    {
-                        regexMatch = Regex.Match(value, "spotify:playlist:(.{22})");
-                        if (regexMatch.Success)
-                        {
-                            Type2 = BaseType.Playlist;
-                            return;
-                        }
-                    }
-                }
-                Type2 = Uri.Split(':')[1] switch
-                {
-                    null => throw new ArgumentNullException(nameof(Uri)),
-                    "" => throw new ArgumentException($"{nameof(Uri)} cannot be empty", nameof(Uri)),
-                    "track" => BaseType.Track,
-                    "artist" => BaseType.Artist,
-                    "album" => BaseType.Album,
-                    "episode" => BaseType.Episode,
-                    "show" => BaseType.Show,
-                    "playlist" => BaseType.Playlist,
-                    "user" => BaseType.Profile,
-                    "app" => BaseType.Genre,
-                    _ => BaseType.Unknown
-                };
-            }
-        }
-
-        [JsonIgnore]
-        public Task<string> FetchHeaderUrl;
-        public string Type { get; set; }
         [J("image")] public string Image { get; set; }
         [J("artists", NullValueHandling = NullValueHandling.Ignore)] public List<Album> Artists { get; set; }
         [J("album", NullValueHandling = NullValueHandling.Ignore)] public Album Album { get; set; }
@@ -233,6 +155,10 @@ namespace SpotifyLib.Models.Mercury
 
     public partial class PlaylistsHit : GenericHit
     {
+        public PlaylistsHit() : base(SpotifyType.Playlist)
+        {
+
+        }
         [J("name")] public string Name { get; set; }
         [J("image")] public string Image { get; set; }
         [J("followersCount")] public long FollowersCount { get; set; }

@@ -9,6 +9,8 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SpotifyLib.Helpers;
+using SpotifyLib.Models;
+using SpotifyLib.Models.Mercury;
 
 namespace SpotifyLib.Mercury
 {
@@ -32,46 +34,43 @@ namespace SpotifyLib.Mercury
             [JsonProperty("items")]
             public List<SearchItem> Items { get; set; }
 
-            public partial class SearchItem
-            {
-                [JsonProperty("name")]
-                public string Name { get; set; }
-
-                [JsonProperty("uri")]
-                public string Uri { get; set; }
-
-                [JsonProperty("image")]
-                public Uri Image { get; set; }
-
-                [JsonProperty("album", NullValueHandling = NullValueHandling.Ignore)]
-                public SearchAlbum Album { get; set; }
-
-                [JsonProperty("artists", NullValueHandling = NullValueHandling.Ignore)]
-                public List<SearchAlbum> Artists { get; set; }
-
-                [JsonProperty("fromLyrics", NullValueHandling = NullValueHandling.Ignore)]
-                public bool? FromLyrics { get; set; }
-
-                [JsonProperty("explicit", NullValueHandling = NullValueHandling.Ignore)]
-                public bool? Explicit { get; set; }
-
-                [JsonProperty("followers", NullValueHandling = NullValueHandling.Ignore)]
-                public long? Followers { get; set; }
-
-                public partial class SearchAlbum
-                {
-                    [JsonProperty("name")]
-                    public string Name { get; set; }
-
-                    [JsonProperty("uri")]
-                    public string Uri { get; set; }
-                }
-            }
         }
     }
-    public class FullSearch : SearchBase
-    {
 
+    public partial class SearchItem : GenericSpotifyItem
+    {
+        public override string ToString() => Name;
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+
+        [JsonProperty("image")]
+        public string Image { get; set; }
+
+        [JsonProperty("album", NullValueHandling = NullValueHandling.Ignore)]
+        public SearchAlbum Album { get; set; }
+
+        [JsonProperty("artists", NullValueHandling = NullValueHandling.Ignore)]
+        public List<SearchAlbum> Artists { get; set; }
+
+        [JsonProperty("fromLyrics", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? FromLyrics { get; set; }
+
+        [JsonProperty("explicit", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? Explicit { get; set; }
+
+        [JsonProperty("followers", NullValueHandling = NullValueHandling.Ignore)]
+        public long? Followers { get; set; }
+
+        public partial class SearchAlbum
+        {
+            [JsonProperty("name")]
+            public string Name { get; set; }
+
+            [JsonProperty("uri")]
+            public string Uri { get; set; }
+        }
     }
     public readonly struct MercurySearchManager
     {
@@ -138,7 +137,7 @@ namespace SpotifyLib.Mercury
         {
             switch (typeof(T))
             {
-                case { } intType when intType == typeof(FullSearch):
+                case { } intType when intType == typeof(MercurySearchResponse):
                     var url =
                         Flurl.Url.Combine(MercurySearchManager.MainSearch,
                             HttpUtility.UrlEncode(_query, Encoding.UTF8));
