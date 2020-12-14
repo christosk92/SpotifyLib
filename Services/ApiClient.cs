@@ -36,6 +36,7 @@ namespace SpotifyLib.Services
                 Search = await CreateAndRegister<ISearch>(session),
                 Artist = await CreateAndRegister<IArtist>(session),
                 Album = await CreateAndRegister<IAlbum>(session),
+                OpenArtist = await CreateAndRegister<IOpenIArtist>(session),
                 SeekTableService = await CreateAndRegister<ISeektables>(session),
                 LicenseService = await CreateAndRegister<IPlaybackLicense>(session),
                 CanvazService = new CanvazService()
@@ -46,6 +47,7 @@ namespace SpotifyLib.Services
         public IPlaybackLicense LicenseService { get; private set; }
         public ISeektables SeekTableService { get; private set; }
         public IArtist Artist { get; private set; }
+        public IOpenIArtist OpenArtist { get; private set; }
         public ISearch Search { get; private set; }
         public IMelody Melody { get; private set; }
         public IConnectState ConnectState { get; private set; }

@@ -17,11 +17,17 @@ namespace SpotifyLib.Models.Api.Response
 
         public string Id { get; set; } = default!;
 
-        public List<Cover> Images { get; set; } = default!;
+        public List<UserImage> Images { get; set; } = default!;
 
         public string Type { get; set; } = default!;
 
         public string Uri { get; set; } = default!;
+    }
+
+    public class UserImage
+    {
+        [JsonProperty("url")]
+        public string Url { get; set; }
     }
 }
 
