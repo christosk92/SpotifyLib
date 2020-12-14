@@ -2,7 +2,7 @@
 
 namespace SpotifyLib.Models.Mercury
 {
-    public partial class UserPresence
+    public class UserPresence
     {
         [JsonProperty("username")]
         public string Username { get; set; }
@@ -10,13 +10,13 @@ namespace SpotifyLib.Models.Mercury
         [JsonProperty("trackUri")]
         public string TrackUri { get; set; }
 
-        [JsonProperty("timestamp")]
-        public long Timestamp { get; set; }
+        [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
+        public long? Timestamp { get; set; }
 
         [JsonProperty("contextUri")]
         public string ContextUri { get; set; }
 
-        [JsonProperty("contextIndex")]
-        public long ContextIndex { get; set; }
+        [JsonProperty("contextIndex", NullValueHandling = NullValueHandling.Ignore)]
+        public int? ContextIndex { get; set; }
     }
 }
