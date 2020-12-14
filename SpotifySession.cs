@@ -29,10 +29,38 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using SpotifyLib.Models.Mercury;
 using SpotifyLib.SpotifyConnect;
 
 namespace SpotifyLib
 {
+    internal class SocialHandler : ISubListener
+    {
+        private readonly SpotifySession _session;
+
+        internal SocialHandler(SpotifySession inter)
+        {
+            _session = inter;
+        }
+
+        public void OnEvent(MercuryResponse resp)
+        {
+            var serializer = new JsonSerializer();
+            using var sr = new StreamReader(new MemoryStream(Combine(resp.Payload.ToArray())));
+            using var jsonTextReader = new JsonTextReader(sr);
+            var data = typeof(UserPresence) == typeof(string)
+                ? (UserPresence) (object) sr.ReadToEnd()
+                : serializer.Deserialize<UserPresence>(jsonTextReader);
+            _session.IncomingPresence(data);
+        }
+
+        internal static byte[] Combine(byte[][] arrays)
+        {
+            return arrays.SelectMany(x => x).ToArray();
+        }
+    }
+
     internal class Inner
     {
         internal readonly DeviceType DeviceType;
@@ -177,6 +205,8 @@ namespace SpotifyLib
         public DeviceType? DeviceType => inner?.DeviceType;
         public string CountryCode { get; private set; }
 
+        public event EventHandler<UserPresence> UserPresenceUpdated;
+        internal void IncomingPresence(UserPresence e) => UserPresenceUpdated?.Invoke(this, e);
         public SpotifySession()
         {
         }
@@ -573,6 +603,28 @@ namespace SpotifyLib
 
         public Configuration Configuration() => inner?.Conf;
 
+        public Task AttachSocial()
+            => Task.Run(() =>
+            {
+                var handler = new SocialHandler(this);
+                var usersSubscribed =
+                    Singleton<SpotifySession>.Instance.Mercury()
+                        .SendSync(new ProtobuffedMercuryRequest<Spotify.Social.UserListReply>(
+                            RawMercuryRequest.Get(
+                                $"hm://socialgraph/subscriptions/user/{Username}?count=200&last_result="),
+                            Spotify.Social.UserListReply.Parser));
+                foreach (var user in usersSubscribed.Users)
+                {
+                    var response = Singleton<SpotifySession>.Instance.Mercury()
+                        .SendSync(new JsonMercuryRequest<UserPresence>(
+                            RawMercuryRequest.Get($"hm://presence2/user/{user.Username}")));
+                    UserPresenceUpdated?.Invoke(this, response);
+                    Singleton<SpotifySession>.Instance.Mercury()
+                        .Subscribe($"hm://presence2/user/{user.Username}",
+                            handler);
+                }
+            }, closedToken);
+
         public DealerClient Dealer()
         {
             WaitAuthLock();
@@ -780,6 +832,7 @@ namespace SpotifyLib
 
         public void OnEvent(MercuryResponse resp)
         {
+            
             if (!resp.Uri.Equals("spotify:user:attributes:update")) return;
             UserAttributesUpdate attributesUpdate;
             try
