@@ -16,6 +16,16 @@ namespace SpotifyLib.Mercury
         {
             return new RawMercuryRequest(uri, "GET");
         }
+        public static RawMercuryRequest Sub(string uri)
+        {
+            var r = new RawMercuryRequest(uri, "SUB");
+            r.AddUserField("Accept-Language", "1202656e");
+            return r;
+        }
+        public static RawMercuryRequest Unsub(string uri)
+        {
+            return new RawMercuryRequest(uri, "UNSUB");
+        }
 
         public RawMercuryRequest(string uri,
             string method,

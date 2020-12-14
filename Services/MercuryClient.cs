@@ -34,6 +34,13 @@ namespace SpotifyLib.Services
         }
     }
 
+    public class PubSubException : Exception
+    {
+        public PubSubException(int message) : base(message.ToString())
+        {
+
+        }
+    }
     public class MercuryClient : PacketsManager
     {
         private readonly ConcurrentDictionary<long, ICallback> _callbacks = new ConcurrentDictionary<long, ICallback>();
@@ -42,8 +49,8 @@ namespace SpotifyLib.Services
         private readonly SpotifySession _session;
         private readonly ConcurrentDictionary<long, BytesArrayList> _partials 
             = new ConcurrentDictionary<long, BytesArrayList>();
-        private readonly ConcurrentBag<InternalSubListener> _subscriptions = 
-            new ConcurrentBag<InternalSubListener>();
+        private readonly List<InternalSubListener> _subscriptions = 
+            new List<InternalSubListener>();
         private readonly System.Threading.EventWaitHandle _removeCallbackLock = new System.Threading.AutoResetEvent(false);
         internal MercuryClient(SpotifySession session) 
             : base(session, "pm-session")
@@ -59,6 +66,51 @@ namespace SpotifyLib.Services
             {
                 _subscriptions.Add(new InternalSubListener(uri, listener, false));
             }
+        }
+
+        public MercuryResponse Subscribe([NotNull] string uri, [NotNull] ISubListener listener)
+        {
+            var response = SendSync(RawMercuryRequest.Sub(uri));
+            if (response.StatusCode != 200) throw new PubSubException(response.StatusCode);
+
+            if (response.Payload.Any())
+            {
+                foreach (var payload in response.Payload)
+                {
+                    var sub = Subscription.Parser.ParseFrom(payload);
+                    lock (_subscriptions)
+                    {
+                        _subscriptions.Add(new InternalSubListener(sub.Uri, listener, true));
+                    }
+                }
+            }
+            else
+            {
+                lock (_subscriptions)
+                {
+                    _subscriptions.Add(new InternalSubListener(uri, listener, true));
+                }
+            }
+
+            Debug.WriteLine($"Subscribed successfully to {uri}!");
+            return response;
+        }
+        public void Unsubscribe([NotNull] string uri) 
+        {
+            var response = SendSync(RawMercuryRequest.Unsub(uri));
+            if (response.StatusCode != 200) throw new PubSubException(response.StatusCode);
+
+            //_subscriptions.
+            lock (_subscriptions)
+            {
+                var find = _subscriptions.FindIndex(k=> k.Matches(uri));
+                if (find != -1)
+                {
+                    _subscriptions.RemoveAt(find);
+                }
+            }
+
+            Debug.WriteLine($"Unsubscribed successfully from {uri}!");
         }
 
         public MercuryResponse SendSync([NotNull] RawMercuryRequest request)
@@ -124,7 +176,12 @@ namespace SpotifyLib.Services
                 bytesOut.Write(part, 0, part.Length);
             }
 
-            var cmd = MercuryPacket.Type.MercuryReq;
+            var cmd = request._header.Method.ToLower() switch
+            {
+                "sub" => MercuryPacket.Type.MercurySub,
+                "unsub" => MercuryPacket.Type.MercuryUnsub,
+                _ => MercuryPacket.Type.MercuryReq
+            };
             _session.Send(cmd, bytesOut.ToArray());
             _callbacks.TryAdd((long) _seqHolder, callback);
             return _seqHolder;
@@ -132,7 +189,7 @@ namespace SpotifyLib.Services
 
         protected override void Handle(MercuryPacket packet)
         {
-            var stream = new MemoryStream(packet.Payload);
+            using var stream = new MemoryStream(packet.Payload);
             int seqLength = getShort(packet.Payload, (int)stream.Position, true);
             stream.Seek(2, SeekOrigin.Current);
             long seq = 0;
