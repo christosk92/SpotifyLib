@@ -18,6 +18,7 @@ namespace SpotifyLib.Models.Api.Requests
         [AliasAs("content_limit")] public int? content_limit { get; set; }
 
         [AliasAs("limit")] public int? limit { get; set; }
+        [AliasAs("offset")] public int? offset { get; set; } = 0;
 
         [AliasAs("types")] public string? types { get; set; }
 

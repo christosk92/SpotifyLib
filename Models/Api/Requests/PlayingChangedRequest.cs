@@ -6,6 +6,7 @@
         public string ContextUri { get; set; }
         public bool? IsPaused { get; set; }
         public bool? IsPlaying { get; set; }
+        public long? TimeStamp { get; set; }
     }
 }
 

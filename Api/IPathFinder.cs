@@ -30,6 +30,8 @@ namespace SpotifyLib.Api
     {
         [JsonProperty("headerImage")]
         public RImage HeaderImage { get; set; }
+        [JsonProperty("avatarImage")]
+        public RImage AvatarImage { get; set; }
     }
     public partial class RImage
     {

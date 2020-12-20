@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SpotifyLib.Api;
 
 namespace SpotifyLib.Models.Api.Response
 {
@@ -22,9 +23,11 @@ namespace SpotifyLib.Models.Api.Response
     public partial class ArtistVisuals
     {
         [J("headerImage", NullValueHandling = N.Ignore)] public AvatarImage HeaderImage { get; set; }
+        [J("avatarImage", NullValueHandling = N.Ignore)] public AvatarImage AvatarImage { get; set; }
     }
     public partial class AvatarImage
     {
+        [J("extractedColors", NullValueHandling = N.Ignore)] public ExtractedColors ExtractedColors { get; set; }
         [J("sources", NullValueHandling = N.Ignore)] public List<AvatarImageSource> Sources { get; set; }
     }
     public partial class AvatarImageSource

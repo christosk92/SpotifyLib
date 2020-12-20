@@ -31,28 +31,9 @@ namespace SpotifyLib.Models.Api.Response
         [J("total")] public long Total { get; set; }
     }
 
-    public partial class RecentlyPlayedItem : GenericSpotifyItem
+    public class RecentlyPlayedItem : FluffyItem
     {
-        [J("collaborative", NullValueHandling = N.Ignore)] public bool? Collaborative { get; set; }
-        [J("description", NullValueHandling = N.Ignore)] public string Description { get; set; }
-        [J("external_urls")] public ExternalUrls ExternalUrls { get; set; }
-        [J("href")] public Uri Href { get; set; }
-        [J("images")] public List<Image> Images { get; set; }
-        [J("name")] public string Name { get; set; }
-        [J("owner", NullValueHandling = N.Ignore)] public Owner Owner { get; set; }
-        [J("primary_color")] public object PrimaryColor { get; set; }
-        [J("public")] public object Public { get; set; }
-        [J("snapshot_id", NullValueHandling = N.Ignore)] public string SnapshotId { get; set; }
-        [J("tracks", NullValueHandling = N.Ignore)] public Tracks Tracks { get; set; }
-        [J("type")] public string Type { get; set; }
-        [J("album_type", NullValueHandling = N.Ignore)] public string AlbumType { get; set; }
-        [J("artists", NullValueHandling = N.Ignore)] public List<Artist> Artists { get; set; }
-        [J("release_date", NullValueHandling = N.Ignore)] public string ReleaseDate { get; set; }
-        [J("release_date_precision", NullValueHandling = N.Ignore)] public string ReleaseDatePrecision { get; set; }
-        [J("total_tracks", NullValueHandling = N.Ignore)] public long? TotalTracks { get; set; }
-        [J("followers", NullValueHandling = N.Ignore)] public Followers Followers { get; set; }
-        [J("genres", NullValueHandling = N.Ignore)] public List<string> Genres { get; set; }
-        [J("popularity", NullValueHandling = N.Ignore)] public long? Popularity { get; set; }
+
     }
     public partial class CustomFields
     {

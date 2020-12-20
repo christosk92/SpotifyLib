@@ -393,13 +393,17 @@ namespace SpotifyLib.SpotifyConnect.Handlers
                         ActiveDeviceId = update.Cluster.ActiveDeviceId;
                         OnDeviceChanged?.Invoke(this, ActiveDeviceId);
                     }
+
+                    long timeStamp = 0;
                     if (update?.Cluster?.PlayerState?.PositionAsOfTimestamp != previousSet)
                     {
+
                         previousSet = update.Cluster.PlayerState.PositionAsOfTimestamp;
                         var diff = (int)(TimeProvider.CurrentTimeMillis() - update.Cluster.PlayerState.Timestamp);
                         Debug.WriteLine("Expected timestamp: " +
                                         (int)(update.Cluster.PlayerState.PositionAsOfTimestamp + diff));
                         OnPositionChanged(update.Cluster.PlayerState.PositionAsOfTimestamp + diff);
+                        timeStamp = update.Cluster.PlayerState.PositionAsOfTimestamp + diff;
                     }
 
                     if (update.Cluster?.PlayerState.Options != null)
@@ -437,7 +441,8 @@ namespace SpotifyLib.SpotifyConnect.Handlers
                         ItemUri = update?.Cluster?.PlayerState?.Track?.Uri,
                         IsPaused = update?.Cluster?.PlayerState?.IsPaused,
                         IsPlaying = update?.Cluster?.PlayerState?.IsPlaying,
-                        ContextUri = update?.Cluster.PlayerState.ContextUri
+                        ContextUri = update?.Cluster.PlayerState.ContextUri,
+                        TimeStamp = timeStamp
                     };
                     CurrentCluster = j;
                     //update?.Cluster?.PlayerState?.Track?.Uri

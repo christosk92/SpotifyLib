@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Connectstate;
 using JetBrains.Annotations;
 using Spotify.Player.Proto;
@@ -181,6 +182,9 @@ namespace SpotifyLib.SpotifyConnect
         {
             CurrentlyPlayingChanged?.Invoke((this, sender as DeviceStateHandler), e);
         }
+
+
+        public Task RequestPlay(RemoteRequest request) => Player.RequestPlay(request);
 
         public void Dispose()
         {

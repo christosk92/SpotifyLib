@@ -24,21 +24,22 @@ namespace SpotifyLib.Helpers
             }
 
             var type = token["type"]?.Value<string>();
-            if (type == "track")
+            switch (type)
             {
-                var obj = new FullTrack();
-                serializer.Populate(token.CreateReader(), obj);
-                return obj;
-            }
-            else if (type == "episode")
-            {
-                var obj = new FullEpisode();
-                serializer.Populate(token.CreateReader(), obj);
-                return obj;
-            }
-            else
-            {
-                throw new Exception($"Received unkown playlist element type: {type}");
+                case "track":
+                {
+                    var obj = new FullTrack();
+                    serializer.Populate(token.CreateReader(), obj);
+                    return obj;
+                }
+                case "episode":
+                {
+                    var obj = new FullEpisode();
+                    serializer.Populate(token.CreateReader(), obj);
+                    return obj;
+                }
+                default:
+                    throw new Exception($"Received unkown playlist element type: {type}");
             }
         }
 
