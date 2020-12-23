@@ -11,3 +11,7 @@ So, kind of like HTTP define verbs and structure on-top of TCP, Hermes define ve
 
 In one sense, it can do more than HTTP, but in another sense, it is much simpler because of the limited use. It was built many years ago, before HTTP/2 and grpc. It is still used heavily at Spotify.
 (https://www.csc.kth.se/~gkreitz/spotifypubsub/spotifypubsub.pdf)
+
+
+Spotify has been slowly moving away from hermes in exchange for normal rest & wss:// (websockets). 
+Nevertheless, there are still a lot calls that are not fully supported by rest (For example the social feed, see  Task AttachSocial() in SpotifySession.cs).
